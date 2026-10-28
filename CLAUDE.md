@@ -1,10 +1,11 @@
-<!-- BEGIN:guidance@6d577b6 -->
+<!-- BEGIN:guidance@45c2bb8 -->
 
 # Shared guidance
 
 The rules for every repo. This block is generated from `core.md` in
-`seanhealy/nam-shub` by the `guidance` skill and replaced whole on each update:
-change it there, never here. The rest of this file is specific to this repo.
+`seanhealy/nam-shub` by the `sync-nam-shub` skill and replaced whole on each
+update: change it there, never here. The rest of this file is specific to this
+repo.
 
 ## Less code, written clean
 

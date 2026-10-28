@@ -48,7 +48,7 @@ Explain a specific line with a comment on that line of the pull request.
    `<!-- BEGIN:guidance@... -->` marker with
    `git ls-remote https://github.com/seanhealy/nam-shub HEAD`. If that commit
    doesn't start with the stamp, say the guidance is behind and suggest the
-   `guidance` skill. Don't update it in this pull request.
+   `sync-nam-shub` skill. Don't update it in this pull request.
 
 ## What to report
 
