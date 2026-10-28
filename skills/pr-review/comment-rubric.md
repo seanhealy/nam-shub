@@ -1,4 +1,4 @@
-# Comment quality rubric
+# Comment Quality Rubric
 
 The bar a comment must clear to survive: **it provides information the code
 cannot, and that a rename, a smaller function, or a clearer type could not
@@ -12,7 +12,7 @@ This is a cleanup pass before the pull request goes up. Comments are useful
 while code is being written; judge each one on whether it earns its place from
 here on, and don't editorialize about how it got written.
 
-## The decision procedure
+## The Decision Procedure
 
 Apply in order. Stop at the first that matches.
 
@@ -32,7 +32,7 @@ Apply in order. Stop at the first that matches.
    Keep, if it clears category B.
 6. **Otherwise,** delete.
 
-## A: functional comments, never removed
+## A: Functional Comments, Never Removed
 
 Removing these changes behaviour, breaks the build, or strips a legal notice.
 
@@ -47,7 +47,7 @@ Removing these changes behaviour, breaks the build, or strips a legal notice.
 A directive that suppresses a check is functional, but the reason beside it is
 a category C comment, judged on its own merits.
 
-## B: class- and module-level orientation
+## B: Class- and Module-Level Orientation
 
 What this type is, the invariant it maintains, and its role among its siblings.
 A reader landing here cold needs the model before the methods make sense.
@@ -60,7 +60,7 @@ does the same thing; the constraint that shapes every method in it.
 speculative docstring added because the file looked bare; parameter and return
 descriptions the signature already states.
 
-## C: load-bearing why the code cannot carry
+## C: Load-Bearing Why the Code Cannot Carry
 
 It must name something outside the code, outside this file, this repo or this
 language, that no amount of renaming reaches.
@@ -82,7 +82,7 @@ evaporate if the variable were named properly; a resolved pixel value beside a
 token in code that uses it. Beside the token's own definition, it shows the
 scale, and stays.
 
-## D: delete by default
+## D: Delete by Default
 
 - **Restatement.** The line below says it.
 - **Section headers inside a function.** The function is too long; extract the
@@ -95,7 +95,7 @@ scale, and stays.
 - **Context-dependent asides.** `// as discussed`, `// per review feedback`.
   Rewrite into the durable fact, or delete.
 
-## Judging the borderline
+## Judging the Borderline
 
 When torn, delete. A deleted comment costs a reader one trip through git
 history; a kept one that drifts misleads every reader afterwards.
