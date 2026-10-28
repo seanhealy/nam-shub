@@ -30,6 +30,9 @@ change and carry over only what you learned. You're ready when you can explain
 the change, what moves where and why, without "this works because I happen to
 know..."
 
+Plans too: a proposal says what already exists that it weighed, and why that
+isn't enough.
+
 ## Guard the Edges, Trust the Types
 
 Validate where data comes in: user input, the network, outside services.
