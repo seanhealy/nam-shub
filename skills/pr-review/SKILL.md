@@ -3,7 +3,7 @@ name: pr-review
 description: Write a pull request description, or review a branch before its pull request goes up, against nam-shub and the comment and test rubrics. Use when starting a change, before a pull request leaves draft, or when Echo asks for a self review.
 ---
 
-# Pull request review
+# Pull Request Review
 
 Catch what Echo would otherwise ask for in review. Write the description when
 the change starts; run the review once the shape has stopped moving. Judge the
@@ -13,7 +13,7 @@ written.
 The rules are in the nam-shub block of `AGENTS.md`. This skill is the
 description's shape, the order to check the rules in, and the comment rubric.
 
-## The description
+## The Description
 
 Write it before the code; it's the plan. A map, kept short.
 
@@ -26,7 +26,7 @@ Write it before the code; it's the plan. A map, kept short.
 No file-by-file restatement, no story of how you got there, no empty headers.
 Explain a specific line with a comment on that line of the pull request.
 
-## The review
+## The Review
 
 1. **Scope.** Read the whole diff and the code it touches, then weigh the
    warning signals in the core together. No one signal decides it. If they
@@ -44,7 +44,7 @@ Explain a specific line with a comment on that line of the pull request.
    the `testing` skill's `test-rubric.md` over them and cite the numbers.
 7. **Description.** It still matches the change and the shape above.
 
-## What to report
+## What to Report
 
 One line per finding: `path:line`, the rule (step, category or number), the
 fix. Fix what's plainly yours to fix. Bring scope and outliers to Echo as a
