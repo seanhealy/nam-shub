@@ -5,7 +5,7 @@ description: Set up or update the shared guidance in this repo, the core block i
 
 # Shared guidance
 
-The core rules and shared skills live in `seanhealy/what-do`. One script copies
+The core rules and shared skills live in `seanhealy/nam-shub`. One script copies
 them into this repo: the core goes between the guidance markers in `AGENTS.md`
 (or `CLAUDE.md` when there's no `AGENTS.md`), and each shared skill replaces
 its folder under `.claude/skills/`. Setup is the same run on a repo that has
@@ -13,8 +13,8 @@ nothing yet.
 
 1. On a new branch, from the repo root, run the script:
    - set up already: `node .claude/skills/guidance/guidance.ts`
-   - first time: `git clone --depth 1 https://github.com/seanhealy/what-do /tmp/what-do`,
-     then `node /tmp/what-do/skills/guidance/guidance.ts`
+   - first time: `git clone --depth 1 https://github.com/seanhealy/nam-shub /tmp/nam-shub`,
+     then `node /tmp/nam-shub/skills/guidance/guidance.ts`
 2. Check the diff touches only the guidance block and the skill folders the
    script listed. Anything else means the script misbehaved: stop and tell
    Echo.

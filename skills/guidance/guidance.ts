@@ -12,7 +12,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const guidanceRepository = "https://github.com/seanhealy/what-do";
+const guidanceRepository = "https://github.com/seanhealy/nam-shub";
 const blockPattern =
 	/<!-- BEGIN:guidance@(\w+) -->[\s\S]*?<!-- END:guidance -->/;
 
