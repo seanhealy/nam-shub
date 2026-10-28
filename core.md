@@ -54,7 +54,7 @@ repo's terminology doc says which. Once something has a name, keep it.
 One pull request does one thing. Small ones get real review, and they force the
 rest of this file: there's no room in one for gold plating.
 
-- Tests for changed behavior ship in the same pull request.
+- Tests for changed behaviour ship in the same pull request.
 - Tiny cleanups in code you're touching can ride along. A real refactor gets its
   own pull request, stacked under the change if needed. Anything else goes
   under "Not in this PR".
@@ -66,14 +66,14 @@ Show Echo the plan before writing when any of these fire:
 
 - the one-sentence summary covers two things ("adds the sale badge and reworks
   price formatting")
-- more than two judgment calls under "Where to look"
+- more than two judgement calls under "Where to look"
 - the change spreads across many files, or past roughly 400 changed lines (not
   counting generated files, lockfiles or migrations)
 - it needs an outlier
 - you can't explain it without "this works because I know..."
 
 A warning triggers a question, never a trim. If it's still one thing, say in
-the description why it's big; if not, split it by behavior. Readability beats
+the description why it's big; if not, split it by behaviour. Readability beats
 size, always.
 
 ## Speed

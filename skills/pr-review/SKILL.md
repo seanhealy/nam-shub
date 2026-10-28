@@ -18,7 +18,7 @@ description's shape, the order to check the rules in, and the comment rubric.
 Write it before the code; it's the plan. A map, kept short.
 
 - **First line:** what it does and why, in one sentence.
-- **Where to look:** the one or two judgment calls.
+- **Where to look:** the one or two judgement calls.
 - **Checked:** what you verified and how, and what you didn't.
 - **Not in this PR:** what you noticed and left, and the stack position if
   stacked.
@@ -40,7 +40,7 @@ Explain a specific line with a comment on that line of the pull request.
 4. **Names.** Full words, the terminology doc's term, a name kept once set.
 5. **Comments.** Run `comment-rubric.md` over every comment the diff adds or
    touches. Cite the category; for a rename, give the exact new name.
-6. **Tests.** Changed behavior has tests in this pull request. Run
+6. **Tests.** Changed behaviour has tests in this pull request. Run
    the `testing` skill's `test-rubric.md` over them and cite the numbers.
 7. **Description.** It still matches the change and the shape above.
 
