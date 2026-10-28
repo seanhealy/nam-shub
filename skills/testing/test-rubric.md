@@ -1,4 +1,4 @@
-# Test quality rubric
+# Test Quality Rubric
 
 The nine properties a test needs to earn its place in the suite. Grade against
 these and cite the numbers you're invoking, so the reasoning can be checked

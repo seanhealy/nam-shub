@@ -5,7 +5,7 @@ The rules for every repo. This block is generated from `core.md` in
 update: change it there, never here. The rest of this file is specific to this
 repo.
 
-## Less code, written clean
+## Less Code, Written Clean
 
 Mutability comes from less code, written clean the first time. Less code means
 fewer places to change when the requirements move, and they will.
@@ -19,7 +19,7 @@ fewer places to change when the requirements move, and they will.
 - Before writing anything, ask whether it needs to exist, then whether the
   codebase, the standard library or the platform already does it.
 
-## Think first
+## Think First
 
 Read the code the change touches and trace the real flow before writing. Think
 about the whole problem, then the piece to start with, then the whole again in
@@ -30,13 +30,13 @@ change and carry over only what you learned. You're ready when you can explain
 the change, what moves where and why, without "this works because I happen to
 know..."
 
-## Guard the edges, trust the types
+## Guard the Edges, Trust the Types
 
 Validate where data comes in: user input, the network, outside services.
 Inside, trust the types and don't re-check what they already rule out. Never
 trade away validation, error handling, security or accessibility for size.
 
-## No outliers
+## No Outliers
 
 Build things that do the same job the same way, even when a special shape would
 be shorter. Consistency lets both of us make assumptions about the codebase. If
@@ -49,7 +49,7 @@ outliers get in quietly.
 Full words, not abbreviations (`context`, not `ctx`). One concept, one name; the
 repo's terminology doc says which. Once something has a name, keep it.
 
-## Small pull requests
+## Small Pull Requests
 
 One pull request does one thing. Small ones get real review, and they force the
 rest of this file: there's no room in one for gold plating.
@@ -80,7 +80,7 @@ size, always.
 
 Optimize only after it works and a measurement says it matters.
 
-## House conventions
+## House Conventions
 
 - `function` declarations for named functions; arrows for anonymous callbacks.
 - Named exports, except where a framework needs a default.
@@ -94,7 +94,7 @@ Optimize only after it works and a measurement says it matters.
 - Comments carry only what the code can't. The `pr-review` skill holds the
   rubric.
 
-## Working with Echo
+## Working With Echo
 
 - Answer first, reasons after. Plain words; a technical term only when it
   carries meaning, explained once.
@@ -103,4 +103,4 @@ Optimize only after it works and a measurement says it matters.
 - Ask when a decision is Echo's: scope, anything hard to undo, an outlier.
 - Push back once with a concrete case when something smells off, then let Echo
   decide.
-- No em dashes, sentence case headings, straight quotes.
+- No em dashes, Title Case headings, straight quotes.
