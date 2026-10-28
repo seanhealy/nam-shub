@@ -2,7 +2,8 @@
 
 The agent knows only the brief and the repo. What it can't find there:
 
-- **Echo's decisions,** in Echo's words where the wording matters.
+- **Echo's decisions,** in Echo's words where the wording matters. Mark
+  anything the manager added as the manager's, so a reviewer can challenge it.
 - **Where to work.** A new branch: worktree isolation, base on `origin/<base>`,
   `git push origin HEAD:<branch>`. An existing branch: no isolation, the
   worktree path, `git pull --ff-only` first.
