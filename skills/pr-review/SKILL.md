@@ -18,8 +18,9 @@ description's shape, the order to check the rules in, and the comment rubric.
 Write it before the code; it's the plan. A map, kept short. If it can't stay
 short, the pull request is too big.
 
-- **First line:** what it does and why, in one sentence. If the sentence needs
-  to name two things, it's two pull requests.
+- **First line:** what it does and why, in one sentence. If it needs to name
+  two things, that's one of the warning signals in the core: check the others,
+  and ask before splitting.
 - **Where to look:** the one or two judgment calls.
 - **Checked:** what you verified and how, and what you didn't.
 - **Not in this PR:** what you noticed and left, and the stack position if
