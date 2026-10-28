@@ -9,7 +9,6 @@ To set up a repo, ask the agent working in it:
 > Set up nam-shub: read `skills/sync-nam-shub/SKILL.md` in
 > `seanhealy/nam-shub` and follow it.
 
-After that, the `sync-nam-shub` skill in the repo keeps it up to date, and
-`pr-review` says when it's behind.
+After that, ask for the `sync-nam-shub` skill in the repo to update it.
 
 `node --test` runs the tests.
