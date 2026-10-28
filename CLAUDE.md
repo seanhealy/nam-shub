@@ -1,4 +1,5 @@
-<!-- BEGIN:nam-shub@c4d9f4b -->
+<!-- BEGIN:nam-shub@4bd7433 -->
+<!-- prettier-ignore-start -->
 
 # nam-shub
 
@@ -106,4 +107,5 @@ Optimize only after it works and a measurement says it matters.
   decide.
 - No em dashes, sentence case headings, straight quotes.
 
+<!-- prettier-ignore-end -->
 <!-- END:nam-shub -->
