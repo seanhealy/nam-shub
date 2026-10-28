@@ -79,7 +79,8 @@ language, that no amount of renaming reaches.
 **Does not:** why the author found it tricky; the line below restated in prose;
 narration of the change that introduced it; an explanation that would
 evaporate if the variable were named properly; a resolved pixel value beside a
-token.
+token in code that uses it. Beside the token's own definition, it shows the
+scale, and stays.
 
 ## D: delete by default
 
