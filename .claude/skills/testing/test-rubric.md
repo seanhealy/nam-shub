@@ -1,4 +1,4 @@
-# Test quality rubric
+# Test Quality Rubric
 
 The nine properties a test needs to earn its place in the suite. Grade against
 these and cite the numbers you're invoking, so the reasoning can be checked
@@ -10,7 +10,8 @@ on, and don't editorialize about how they got written.
 
 1. **Tests behaviour, not implementation.** It exercises the surface a caller
    uses. Renaming a private function, reordering internal calls, or swapping a
-   data structure must not break it.
+   data structure must not break it. For a UI, that surface is what the user
+   sees: query and interact by role, label or text.
 2. **Tests one unit.** Fake what the unit depends on when the real thing would
    add setup or complexity to the test. When it wouldn't, like es-toolkit or a
    pure helper, let it run, and trust it: test this unit's behaviour, not the

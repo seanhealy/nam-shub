@@ -8,7 +8,7 @@ description: Write or change tests to the shared conventions, and grade them aga
 How tests are laid out and named, and what they fake. `test-rubric.md` is what
 each test has to earn; run it over the tests before the pull request goes up.
 
-## Name the describe after the export
+## Name the Describe After the Export
 
 A file usually has one named export, named like the file. The root `describe`
 is that export, written the way it's used.
@@ -29,7 +29,7 @@ describe("sandwich/route", () => {
 });
 ```
 
-## Nest describes for context
+## Nest Describes for Context
 
 A context starts with "when", "as", "with" or "without". Put the setup the
 context shares in its own `beforeEach`.
@@ -61,26 +61,33 @@ describe("when it builds a sandwich", () => {
 });
 ```
 
-## Describe what the user sees
+## Describe What the User Sees
 
 Use `it`, not `test`. Third person, present tense, no "should": "returns the
 order's details", not "should fetch the order from the database". Name the
 behaviour, not the call that produces it: "shows a success message", not
 "calls showToast".
 
-## One behaviour per test
+## One Behaviour per Test
 
 When a test fails, it should be clear which behaviour broke. Several
 expectations are fine when they check one behaviour together.
 
-## Fake what adds complexity
+## Query What the User Sees
+
+Find elements by role, label or text through the test library's queries, and
+click and type through them too: `getByRole("alert")`, not
+`container.querySelector(".error")`. A user can't reach the DOM node a render
+helper hands back, so the test doesn't either.
+
+## Fake What Adds Complexity
 
 A unit test tests one unit. Fake a dependency when the real one would add setup
 or complexity to the test, and checking that the unit called it correctly is
 fine. When the real thing is cheap, like es-toolkit or a pure helper, let it
 run, and trust it: don't test its behaviour from here.
 
-## Build data with factories
+## Build Data With Factories
 
 Factories, not fixtures. A factory fills in what the test doesn't care about;
 the test sets what it does.
