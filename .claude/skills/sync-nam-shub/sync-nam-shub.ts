@@ -41,7 +41,8 @@ function writeBlock(repository: string, core: string, commit: string) {
 	const agents = join(repository, "AGENTS.md");
 	const file = existsSync(agents) ? agents : join(repository, "CLAUDE.md");
 	const current = existsSync(file) ? readFileSync(file, "utf8") : "";
-	const block = `<!-- BEGIN:nam-shub@${commit} -->\n\n${core.trim()}\n\n<!-- END:nam-shub -->`;
+	// Generated and replaced whole, so a repo's formatter leaves it alone.
+	const block = `<!-- BEGIN:nam-shub@${commit} -->\n<!-- prettier-ignore-start -->\n\n${core.trim()}\n\n<!-- prettier-ignore-end -->\n<!-- END:nam-shub -->`;
 	const previous = current.match(blockPattern)?.[1];
 	const next = previous
 		? current.replace(blockPattern, () => block)
