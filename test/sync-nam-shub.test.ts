@@ -182,12 +182,16 @@ describe("syncNamShub()", () => {
 			write(repository, "AGENTS.md", "# Project One\n");
 		});
 
-		it("throws", () => {
-			assert.throws(() => syncNamShub(repository, join(makeDirectory(), "missing")));
+		it("throws the clone error", () => {
+			assert.throws(() => syncNamShub(repository, join(makeDirectory(), "missing")), {
+				message: /git clone/,
+			});
 		});
 
 		it("leaves the repo untouched", () => {
-			assert.throws(() => syncNamShub(repository, join(makeDirectory(), "missing")));
+			assert.throws(() => syncNamShub(repository, join(makeDirectory(), "missing")), {
+				message: /git clone/,
+			});
 
 			assert.equal(read(repository, "AGENTS.md"), "# Project One\n");
 		});
