@@ -12,12 +12,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const guidanceRepository = "https://github.com/seanhealy/nam-shub";
+const namShubRepository = "https://github.com/seanhealy/nam-shub";
 const blockPattern =
-	/<!-- BEGIN:guidance@(\w+) -->[\s\S]*?<!-- END:guidance -->/;
+	/<!-- BEGIN:nam-shub@(\w+) -->[\s\S]*?<!-- END:nam-shub -->/;
 
-export function syncGuidance(repository: string, source = guidanceRepository) {
-	const checkout = mkdtempSync(join(tmpdir(), "guidance-"));
+export function syncNamShub(repository: string, source = namShubRepository) {
+	const checkout = mkdtempSync(join(tmpdir(), "nam-shub-"));
 	try {
 		execFileSync("git", ["clone", "--quiet", "--depth", "1", source, checkout]);
 		const commit = execFileSync(
@@ -41,7 +41,7 @@ function writeBlock(repository: string, core: string, commit: string) {
 	const agents = join(repository, "AGENTS.md");
 	const file = existsSync(agents) ? agents : join(repository, "CLAUDE.md");
 	const current = existsSync(file) ? readFileSync(file, "utf8") : "";
-	const block = `<!-- BEGIN:guidance@${commit} -->\n\n${core.trim()}\n\n<!-- END:guidance -->`;
+	const block = `<!-- BEGIN:nam-shub@${commit} -->\n\n${core.trim()}\n\n<!-- END:nam-shub -->`;
 	const previous = current.match(blockPattern)?.[1];
 	const next = previous
 		? current.replace(blockPattern, () => block)
@@ -60,14 +60,14 @@ function copySkills(from: string, to: string) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	const { previous, commit, skills } = syncGuidance(process.cwd());
+	const { previous, commit, skills } = syncNamShub(process.cwd());
 	if (previous === commit) {
-		console.log(`Shared guidance is already at ${commit}.`);
+		console.log(`nam-shub is already at ${commit}.`);
 	} else if (previous) {
-		console.log(`Updated shared guidance ${previous} → ${commit}.`);
-		console.log(`Changes: ${guidanceRepository}/compare/${previous}...${commit}`);
+		console.log(`Updated nam-shub ${previous} → ${commit}.`);
+		console.log(`Changes: ${namShubRepository}/compare/${previous}...${commit}`);
 	} else {
-		console.log(`Added shared guidance @${commit}.`);
+		console.log(`Added nam-shub @${commit}.`);
 	}
 	console.log(`Skills written: ${skills.join(", ")}`);
 }
