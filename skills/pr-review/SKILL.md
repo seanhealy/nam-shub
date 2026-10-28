@@ -44,6 +44,11 @@ Explain a specific line with a comment on that line of the pull request.
 6. **Tests.** Changed behavior has tests in this pull request. Run
    `test-rubric.md` over them and cite the numbers.
 7. **Description.** It still matches the change and the shape above.
+8. **Guidance.** Compare the commit in `AGENTS.md`'s
+   `<!-- BEGIN:guidance@... -->` marker with
+   `git ls-remote https://github.com/seanhealy/what-do HEAD`. If that commit
+   doesn't start with the stamp, say the guidance is behind and suggest the
+   `guidance` skill. Don't update it in this pull request.
 
 ## What to report
 
