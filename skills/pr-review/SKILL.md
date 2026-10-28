@@ -1,6 +1,6 @@
 ---
 name: pr-review
-description: Write a pull request description, or review a branch before its pull request goes up, against nam-shub and the comment and test rubrics. Use when starting a change, before a pull request is set to review requested, or when Echo asks for a self review.
+description: Write a pull request description, or review a branch before its pull request goes up, against nam-shub and the comment and test rubrics. Use when starting a change, before a pull request leaves draft, or when Echo asks for a self review.
 ---
 
 # Pull request review

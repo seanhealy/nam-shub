@@ -58,8 +58,9 @@ rest of this file: there's no room in one for gold plating.
 - Tiny cleanups in code you're touching can ride along. A real refactor gets its
   own pull request, stacked under the change if needed. Anything else goes
   under "Not in this PR".
-- Write the description before the code. It's the plan. Its shape is in the
-  `pr-review` skill.
+- Load the `pr-review` skill before writing a change: the description comes
+  first, and it's the plan. Load it again before the pull request leaves draft.
+- A pull request stays a draft while it has an open question for Echo.
 
 Show Echo the plan before writing when any of these fire:
 
