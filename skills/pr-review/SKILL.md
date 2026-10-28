@@ -44,11 +44,6 @@ Explain a specific line with a comment on that line of the pull request.
 6. **Tests.** Changed behavior has tests in this pull request. Run
    `test-rubric.md` over them and cite the numbers.
 7. **Description.** It still matches the change and the shape above.
-8. **nam-shub.** Compare the commit in `AGENTS.md`'s
-   `<!-- BEGIN:nam-shub@... -->` marker with
-   `git ls-remote https://github.com/seanhealy/nam-shub HEAD`. If that commit
-   doesn't start with the stamp, say nam-shub is behind and suggest the
-   `sync-nam-shub` skill. Don't update it in this pull request.
 
 ## What to report
 

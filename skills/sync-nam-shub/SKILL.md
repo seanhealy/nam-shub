@@ -1,6 +1,6 @@
 ---
 name: sync-nam-shub
-description: Set up or update nam-shub in this repo, the nam-shub block in AGENTS.md and the shared skills in .claude/skills/. Use when Echo asks to set up or update nam-shub, or when pr-review reports the block is behind.
+description: Set up or update nam-shub in this repo, the nam-shub block in AGENTS.md and the shared skills in .claude/skills/. Use when Echo asks to set up or update nam-shub.
 ---
 
 # Sync nam-shub
