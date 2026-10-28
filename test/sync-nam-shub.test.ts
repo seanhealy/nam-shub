@@ -179,17 +179,21 @@ describe("syncNamShub()", () => {
 
 	describe("when the source can't be cloned", () => {
 		beforeEach(() => {
+			source = join(makeDirectory(), "missing");
+		});
+
+		beforeEach(() => {
 			write(repository, "AGENTS.md", "# Project One\n");
 		});
 
 		it("throws the clone error", () => {
-			assert.throws(() => syncNamShub(repository, join(makeDirectory(), "missing")), {
+			assert.throws(() => syncNamShub(repository, source), {
 				message: /git clone/,
 			});
 		});
 
 		it("leaves the repo untouched", () => {
-			assert.throws(() => syncNamShub(repository, join(makeDirectory(), "missing")), {
+			assert.throws(() => syncNamShub(repository, source), {
 				message: /git clone/,
 			});
 
