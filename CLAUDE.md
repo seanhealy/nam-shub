@@ -1,6 +1,6 @@
-<!-- BEGIN:guidance@45c2bb8 -->
+<!-- BEGIN:nam-shub@d746259 -->
 
-# Shared guidance
+# nam-shub
 
 The rules for every repo. This block is generated from `core.md` in
 `seanhealy/nam-shub` by the `sync-nam-shub` skill and replaced whole on each
@@ -106,4 +106,4 @@ Optimize only after it works and a measurement says it matters.
   decide.
 - No em dashes, sentence case headings, straight quotes.
 
-<!-- END:guidance -->
+<!-- END:nam-shub -->
