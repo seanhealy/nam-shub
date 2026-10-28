@@ -11,116 +11,204 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 import { syncNamShub } from "../skills/sync-nam-shub/sync-nam-shub.ts";
 
 describe("syncNamShub()", () => {
-	it("creates CLAUDE.md with the core block in a repo that has no instructions file", () => {
-		const source = makeSource({ core: "Write less code." });
-		const repository = makeDirectory();
+	let repository: string;
+	let source: string;
 
-		const { previous, commit } = syncNamShub(repository, source);
-
-		assert.equal(previous, undefined);
-		assert.equal(
-			read(repository, "CLAUDE.md"),
-			`<!-- BEGIN:nam-shub@${commit} -->\n<!-- prettier-ignore-start -->\n\nWrite less code.\n\n<!-- prettier-ignore-end -->\n<!-- END:nam-shub -->\n`,
-		);
+	beforeEach(() => {
+		repository = makeDirectory();
 	});
 
-	it("puts the block above an existing AGENTS.md and keeps everything already there", () => {
-		const source = makeSource({ core: "Write less code." });
-		const repository = makeDirectory();
-		write(repository, "AGENTS.md", "# Project One\n\nRun npm test.\n");
-
-		const { commit } = syncNamShub(repository, source);
-
-		assert.equal(
-			read(repository, "AGENTS.md"),
-			`<!-- BEGIN:nam-shub@${commit} -->\n<!-- prettier-ignore-start -->\n\nWrite less code.\n\n<!-- prettier-ignore-end -->\n<!-- END:nam-shub -->\n\n# Project One\n\nRun npm test.\n`,
-		);
-		assert.equal(existsSync(join(repository, "CLAUDE.md")), false);
-	});
-
-	it("replaces an existing block whole and reports the commit it replaced", () => {
-		const source = makeSource({ core: "Write less code." });
-		const repository = makeDirectory();
-		write(
-			repository,
-			"AGENTS.md",
-			"<!-- BEGIN:nam-shub@1234567 -->\n\nOld rule.\n\n<!-- END:nam-shub -->\n\n# Project One\n",
-		);
-
-		const { previous, commit } = syncNamShub(repository, source);
-
-		assert.equal(previous, "1234567");
-		assert.equal(
-			read(repository, "AGENTS.md"),
-			`<!-- BEGIN:nam-shub@${commit} -->\n<!-- prettier-ignore-start -->\n\nWrite less code.\n\n<!-- prettier-ignore-end -->\n<!-- END:nam-shub -->\n\n# Project One\n`,
-		);
-	});
-
-	it("keeps dollar signs in the core exactly as written", () => {
-		const source = makeSource({ core: "Prices look like $5 and $& stays." });
-		const repository = makeDirectory();
-		write(
-			repository,
-			"AGENTS.md",
-			"<!-- BEGIN:nam-shub@1234567 -->\n\nOld rule.\n\n<!-- END:nam-shub -->\n",
-		);
-
-		syncNamShub(repository, source);
-
-		assert.match(read(repository, "AGENTS.md"), /Prices look like \$5 and \$& stays\./);
-	});
-
-	it("writes through a CLAUDE.md symlink to AGENTS.md and leaves the link in place", () => {
-		const source = makeSource({ core: "Write less code." });
-		const repository = makeDirectory();
-		write(repository, "AGENTS.md", "# Project One\n");
-		symlinkSync("AGENTS.md", join(repository, "CLAUDE.md"));
-
-		syncNamShub(repository, source);
-
-		assert.equal(lstatSync(join(repository, "CLAUDE.md")).isSymbolicLink(), true);
-		assert.match(read(repository, "AGENTS.md"), /Write less code\.[\s\S]*# Project One/);
-	});
-
-	it("replaces a shared skill whole and leaves the repo's own skills alone", () => {
-		const source = makeSource({
+	beforeEach(() => {
+		source = makeSource({
 			core: "Write less code.",
 			skills: { "pr-review": { "SKILL.md": "New review steps." } },
 		});
-		const repository = makeDirectory();
-		write(repository, ".claude/skills/pr-review/SKILL.md", "Old review steps.");
-		write(repository, ".claude/skills/pr-review/removed.md", "Gone upstream.");
-		write(repository, ".claude/skills/deploy/SKILL.md", "This repo's own skill.");
-
-		const { skills } = syncNamShub(repository, source);
-
-		assert.deepEqual(skills, ["pr-review"]);
-		assert.equal(read(repository, ".claude/skills/pr-review/SKILL.md"), "New review steps.");
-		assert.equal(existsSync(join(repository, ".claude/skills/pr-review/removed.md")), false);
-		assert.equal(read(repository, ".claude/skills/deploy/SKILL.md"), "This repo's own skill.");
 	});
 
-	it("fails without touching the repo when the source can't be cloned", () => {
-		const repository = makeDirectory();
-		write(repository, "AGENTS.md", "# Project One\n");
+	describe("without an instructions file", () => {
+		it("creates CLAUDE.md with the block", () => {
+			const { commit } = syncNamShub(repository, source);
 
-		assert.throws(() => syncNamShub(repository, join(makeDirectory(), "missing")));
-		assert.equal(read(repository, "AGENTS.md"), "# Project One\n");
+			assert.equal(
+				read(repository, "CLAUDE.md"),
+				`<!-- BEGIN:nam-shub@${commit} -->\n<!-- prettier-ignore-start -->\n\nWrite less code.\n\n<!-- prettier-ignore-end -->\n<!-- END:nam-shub -->\n`,
+			);
+		});
+
+		it("reports no previous commit", () => {
+			const { previous } = syncNamShub(repository, source);
+
+			assert.equal(previous, undefined);
+		});
+	});
+
+	describe("with an AGENTS.md", () => {
+		beforeEach(() => {
+			write(repository, "AGENTS.md", "# Project One\n\nRun npm test.\n");
+		});
+
+		it("puts the block above everything already there", () => {
+			const { commit } = syncNamShub(repository, source);
+
+			assert.equal(
+				read(repository, "AGENTS.md"),
+				`<!-- BEGIN:nam-shub@${commit} -->\n<!-- prettier-ignore-start -->\n\nWrite less code.\n\n<!-- prettier-ignore-end -->\n<!-- END:nam-shub -->\n\n# Project One\n\nRun npm test.\n`,
+			);
+		});
+
+		it("doesn't create CLAUDE.md", () => {
+			syncNamShub(repository, source);
+
+			assert.equal(existsSync(join(repository, "CLAUDE.md")), false);
+		});
+	});
+
+	describe("with a block from an earlier sync", () => {
+		beforeEach(() => {
+			write(
+				repository,
+				"AGENTS.md",
+				"<!-- BEGIN:nam-shub@1234567 -->\n\nOld rule.\n\n<!-- END:nam-shub -->\n\n# Project One\n",
+			);
+		});
+
+		it("replaces the block whole", () => {
+			const { commit } = syncNamShub(repository, source);
+
+			assert.equal(
+				read(repository, "AGENTS.md"),
+				`<!-- BEGIN:nam-shub@${commit} -->\n<!-- prettier-ignore-start -->\n\nWrite less code.\n\n<!-- prettier-ignore-end -->\n<!-- END:nam-shub -->\n\n# Project One\n`,
+			);
+		});
+
+		it("reports the commit it replaced", () => {
+			const { previous } = syncNamShub(repository, source);
+
+			assert.equal(previous, "1234567");
+		});
+
+		describe("with dollar signs in the core", () => {
+			beforeEach(() => {
+				source = makeSource({
+					core: "Prices look like $5 and $& stays.",
+					skills: { "pr-review": { "SKILL.md": "New review steps." } },
+				});
+			});
+
+			it("keeps them exactly as written", () => {
+				syncNamShub(repository, source);
+
+				assert.match(
+					read(repository, "AGENTS.md"),
+					/Prices look like \$5 and \$& stays\./,
+				);
+			});
+		});
+	});
+
+	describe("with CLAUDE.md linked to AGENTS.md", () => {
+		beforeEach(() => {
+			write(repository, "AGENTS.md", "# Project One\n");
+		});
+
+		beforeEach(() => {
+			symlinkSync("AGENTS.md", join(repository, "CLAUDE.md"));
+		});
+
+		it("writes the block into AGENTS.md", () => {
+			syncNamShub(repository, source);
+
+			assert.match(
+				read(repository, "AGENTS.md"),
+				/Write less code\.[\s\S]*# Project One/,
+			);
+		});
+
+		it("leaves the link in place", () => {
+			syncNamShub(repository, source);
+
+			assert.equal(
+				lstatSync(join(repository, "CLAUDE.md")).isSymbolicLink(),
+				true,
+			);
+		});
+	});
+
+	describe("with skills already in the repo", () => {
+		beforeEach(() => {
+			write(repository, ".claude/skills/pr-review/SKILL.md", "Old review steps.");
+			write(repository, ".claude/skills/pr-review/removed.md", "Gone upstream.");
+		});
+
+		beforeEach(() => {
+			write(repository, ".claude/skills/deploy/SKILL.md", "This repo's own skill.");
+		});
+
+		it("replaces a shared skill whole", () => {
+			syncNamShub(repository, source);
+
+			assert.equal(
+				read(repository, ".claude/skills/pr-review/SKILL.md"),
+				"New review steps.",
+			);
+			assert.equal(
+				existsSync(join(repository, ".claude/skills/pr-review/removed.md")),
+				false,
+			);
+		});
+
+		it("leaves the repo's own skills alone", () => {
+			syncNamShub(repository, source);
+
+			assert.equal(
+				read(repository, ".claude/skills/deploy/SKILL.md"),
+				"This repo's own skill.",
+			);
+		});
+
+		it("reports the shared skills it wrote", () => {
+			const { skills } = syncNamShub(repository, source);
+
+			assert.deepEqual(skills, ["pr-review"]);
+		});
+	});
+
+	describe("when the source can't be cloned", () => {
+		beforeEach(() => {
+			source = join(makeDirectory(), "missing");
+		});
+
+		beforeEach(() => {
+			write(repository, "AGENTS.md", "# Project One\n");
+		});
+
+		it("throws the clone error", () => {
+			assert.throws(() => syncNamShub(repository, source), {
+				message: /git clone/,
+			});
+		});
+
+		it("leaves the repo untouched", () => {
+			assert.throws(() => syncNamShub(repository, source), {
+				message: /git clone/,
+			});
+
+			assert.equal(read(repository, "AGENTS.md"), "# Project One\n");
+		});
 	});
 });
 
 function makeSource(contents: {
 	core: string;
-	skills?: Record<string, Record<string, string>>;
+	skills: Record<string, Record<string, string>>;
 }) {
 	const source = makeDirectory();
-	const skills = contents.skills ?? { "pr-review": { "SKILL.md": "Review steps." } };
 	write(source, "core.md", `${contents.core}\n`);
-	Object.entries(skills).forEach(([skill, files]) => {
+	Object.entries(contents.skills).forEach(([skill, files]) => {
 		Object.entries(files).forEach(([file, text]) => {
 			write(source, join("skills", skill, file), text);
 		});
