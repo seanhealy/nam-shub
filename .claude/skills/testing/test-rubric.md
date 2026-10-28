@@ -11,11 +11,13 @@ on, and don't editorialize about how they got written.
 1. **Tests behaviour, not implementation.** It exercises the surface a caller
    uses. Renaming a private function, reordering internal calls, or swapping a
    data structure must not break it.
-2. **Mocks the minimal set.** Only what can't run in a test: the network, the
-   clock, a paid API, something slow or destructive. Every extra mock is an
-   assumption about the implementation baked into the test.
-3. **Covers the obvious edge cases.** Empty, absent, zero, negative, one, many,
-   duplicate, too large, wrong type, and the error paths.
+2. **Tests one unit.** Fake what the unit depends on when the real thing would
+   add setup or complexity to the test. When it wouldn't, like es-toolkit or a
+   pure helper, let it run, and trust it: test this unit's behaviour, not the
+   dependency's.
+3. **Covers the edge cases this unit handles.** Empty, absent, zero, negative,
+   one, many, duplicate, too large, wrong type, and the error paths. Not the
+   edge cases of what it calls.
 4. **Reads well as prose.** Someone reading only the test descriptions should
    come away understanding what the system does. The descriptions are the
    specification.
@@ -30,5 +32,6 @@ on, and don't editorialize about how they got written.
 8. **Fails with a diagnostic message.** The output alone says what broke and
    why.
 9. **Setup reveals intent, and holds no logic.** The values that matter are
-   visible in the test body, not buried in a shared factory default. No
-   conditionals, loops, or computed expected values in the test.
+   visible in the test or a `beforeEach` in the same `describe`, not buried in
+   a factory default or a helper in another file. No conditionals, loops, or
+   computed expected values in the test.
