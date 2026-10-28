@@ -20,10 +20,13 @@ the file has here: additions to `skills/<name>/SKILL.md` go in
 `.claude/extensions/skills/<name>/SKILL.md`. The sync never touches
 `.claude/extensions/`, and an extension loads only with the skill it extends.
 
-A shared file that takes an extension ends with an `@` line to it:
+The skill's `SKILL.md` ends with an `@` line for each of its files that takes
+an extension. Only `SKILL.md` follows them: in a file the skill links to, an
+`@` line is plain text.
 
 ```markdown
 @.claude/extensions/skills/<name>/SKILL.md
+@.claude/extensions/skills/<name>/BRIEFS.md
 ```
 
 When the repo has no extension, the line is skipped without an error. Add the
