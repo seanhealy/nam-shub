@@ -12,19 +12,19 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { syncGuidance } from "../skills/sync-nam-shub/guidance.ts";
+import { syncNamShub } from "../skills/sync-nam-shub/sync-nam-shub.ts";
 
-describe("syncGuidance", () => {
+describe("syncNamShub()", () => {
 	it("creates CLAUDE.md with the core block in a repo that has no instructions file", () => {
 		const source = makeSource({ core: "Write less code." });
 		const repository = makeDirectory();
 
-		const { previous, commit } = syncGuidance(repository, source);
+		const { previous, commit } = syncNamShub(repository, source);
 
 		assert.equal(previous, undefined);
 		assert.equal(
 			read(repository, "CLAUDE.md"),
-			`<!-- BEGIN:guidance@${commit} -->\n\nWrite less code.\n\n<!-- END:guidance -->\n`,
+			`<!-- BEGIN:nam-shub@${commit} -->\n\nWrite less code.\n\n<!-- END:nam-shub -->\n`,
 		);
 	});
 
@@ -33,11 +33,11 @@ describe("syncGuidance", () => {
 		const repository = makeDirectory();
 		write(repository, "AGENTS.md", "# Project One\n\nRun npm test.\n");
 
-		const { commit } = syncGuidance(repository, source);
+		const { commit } = syncNamShub(repository, source);
 
 		assert.equal(
 			read(repository, "AGENTS.md"),
-			`<!-- BEGIN:guidance@${commit} -->\n\nWrite less code.\n\n<!-- END:guidance -->\n\n# Project One\n\nRun npm test.\n`,
+			`<!-- BEGIN:nam-shub@${commit} -->\n\nWrite less code.\n\n<!-- END:nam-shub -->\n\n# Project One\n\nRun npm test.\n`,
 		);
 		assert.equal(existsSync(join(repository, "CLAUDE.md")), false);
 	});
@@ -48,15 +48,15 @@ describe("syncGuidance", () => {
 		write(
 			repository,
 			"AGENTS.md",
-			"<!-- BEGIN:guidance@1234567 -->\n\nOld rule.\n\n<!-- END:guidance -->\n\n# Project One\n",
+			"<!-- BEGIN:nam-shub@1234567 -->\n\nOld rule.\n\n<!-- END:nam-shub -->\n\n# Project One\n",
 		);
 
-		const { previous, commit } = syncGuidance(repository, source);
+		const { previous, commit } = syncNamShub(repository, source);
 
 		assert.equal(previous, "1234567");
 		assert.equal(
 			read(repository, "AGENTS.md"),
-			`<!-- BEGIN:guidance@${commit} -->\n\nWrite less code.\n\n<!-- END:guidance -->\n\n# Project One\n`,
+			`<!-- BEGIN:nam-shub@${commit} -->\n\nWrite less code.\n\n<!-- END:nam-shub -->\n\n# Project One\n`,
 		);
 	});
 
@@ -66,10 +66,10 @@ describe("syncGuidance", () => {
 		write(
 			repository,
 			"AGENTS.md",
-			"<!-- BEGIN:guidance@1234567 -->\n\nOld rule.\n\n<!-- END:guidance -->\n",
+			"<!-- BEGIN:nam-shub@1234567 -->\n\nOld rule.\n\n<!-- END:nam-shub -->\n",
 		);
 
-		syncGuidance(repository, source);
+		syncNamShub(repository, source);
 
 		assert.match(read(repository, "AGENTS.md"), /Prices look like \$5 and \$& stays\./);
 	});
@@ -80,7 +80,7 @@ describe("syncGuidance", () => {
 		write(repository, "AGENTS.md", "# Project One\n");
 		symlinkSync("AGENTS.md", join(repository, "CLAUDE.md"));
 
-		syncGuidance(repository, source);
+		syncNamShub(repository, source);
 
 		assert.equal(lstatSync(join(repository, "CLAUDE.md")).isSymbolicLink(), true);
 		assert.match(read(repository, "AGENTS.md"), /Write less code\.[\s\S]*# Project One/);
@@ -96,7 +96,7 @@ describe("syncGuidance", () => {
 		write(repository, ".claude/skills/pr-review/removed.md", "Gone upstream.");
 		write(repository, ".claude/skills/deploy/SKILL.md", "This repo's own skill.");
 
-		const { skills } = syncGuidance(repository, source);
+		const { skills } = syncNamShub(repository, source);
 
 		assert.deepEqual(skills, ["pr-review"]);
 		assert.equal(read(repository, ".claude/skills/pr-review/SKILL.md"), "New review steps.");
@@ -108,7 +108,7 @@ describe("syncGuidance", () => {
 		const repository = makeDirectory();
 		write(repository, "AGENTS.md", "# Project One\n");
 
-		assert.throws(() => syncGuidance(repository, join(makeDirectory(), "missing")));
+		assert.throws(() => syncNamShub(repository, join(makeDirectory(), "missing")));
 		assert.equal(read(repository, "AGENTS.md"), "# Project One\n");
 	});
 });
@@ -127,12 +127,12 @@ function makeSource(contents: {
 	});
 	git(source, "init", "--quiet");
 	git(source, "add", "--all");
-	git(source, "commit", "--quiet", "--allow-empty", "-m", "Guidance");
+	git(source, "commit", "--quiet", "--allow-empty", "-m", "nam-shub");
 	return source;
 }
 
 function makeDirectory() {
-	return mkdtempSync(join(tmpdir(), "guidance-test-"));
+	return mkdtempSync(join(tmpdir(), "nam-shub-test-"));
 }
 
 function write(directory: string, path: string, text: string) {
