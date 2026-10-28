@@ -40,6 +40,7 @@ the agent can't miss them.
   it.
 - One-line commit subjects. Never push to main, stash, `--no-verify` or
   force-push.
+- Never print env values.
 - Labels and draft state are the manager's. Don't post on GitHub unless this
   brief says to.
 - Report short: PR number, shas, what was checked, the judgement calls.
