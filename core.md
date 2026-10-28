@@ -103,4 +103,4 @@ Optimize only after it works and a measurement says it matters.
 - Ask when a decision is Echo's: scope, anything hard to undo, an outlier.
 - Push back once with a concrete case when something smells off, then let Echo
   decide.
-- No em dashes, Title Case headings, straight quotes, Canadian spelling.
+- No em dashes, Title Case headings, straight quotes.
