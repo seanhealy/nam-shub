@@ -80,9 +80,6 @@ or complexity to the test, and checking that the unit called it correctly is
 fine. When the real thing is cheap, like es-toolkit or a pure helper, let it
 run, and trust it: don't test its behaviour from here.
 
-Faked units can all pass while the real pieces no longer fit, so a few tests
-run them together.
-
 ## Build data with factories
 
 Factories, not fixtures. A factory fills in what the test doesn't care about;
