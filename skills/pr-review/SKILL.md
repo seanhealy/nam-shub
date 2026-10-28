@@ -15,11 +15,9 @@ description's shape, the order to check the rules in, and the comment rubric.
 
 ## The description
 
-Write it before the code; it's the plan. A map, kept short. If it can't stay
-short, the pull request is too big.
+Write it before the code; it's the plan. A map, kept short.
 
-- **First line:** what it does and why, in one sentence. If the sentence needs
-  to name two things, it's two pull requests.
+- **First line:** what it does and why, in one sentence.
 - **Where to look:** the one or two judgment calls.
 - **Checked:** what you verified and how, and what you didn't.
 - **Not in this PR:** what you noticed and left, and the stack position if
@@ -30,9 +28,10 @@ Explain a specific line with a comment on that line of the pull request.
 
 ## The review
 
-1. **Scope.** Read the whole diff and the code it touches. Does the first line
-   still cover it as one thing? Do any of the warning signals fire? If it isn't
-   one thing, propose the split. Never trim to clear a signal.
+1. **Scope.** Read the whole diff and the code it touches, then weigh the
+   warning signals in the core together. No one signal decides it. If they
+   point at more than one thing, bring Echo the split as a question. Never trim
+   to clear a signal.
 2. **Less code.** Look for anything nobody asked for: options, parameters,
    layers, a helper used once, checks the types already rule out. Look the
    other way too: a second use that copied the first instead of sharing it.
