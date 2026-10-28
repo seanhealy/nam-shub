@@ -22,7 +22,7 @@ works in background tabs of Echo's one window (`Target.createTarget` with
 `background: true`) and touches only its own tabs. Long research runs report
 at checkpoints.
 
-## Rules to paste
+## Rules to Paste
 
 Paste this at the end of every brief, word for word, filling in the angle
 brackets. It restates the rules above and in the repo's instructions file so

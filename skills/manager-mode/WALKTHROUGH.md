@@ -1,4 +1,4 @@
-# Walking Echo through pages
+# Walking Echo Through Pages
 
 When Echo checks pages one at a time in their browser:
 

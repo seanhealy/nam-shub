@@ -7,7 +7,7 @@ Manager mode exists to keep the manager's **turns free** so Echo can always
 talk. It is off until Echo asks for it, or the manager suggests it and Echo
 agrees.
 
-## The line
+## The Line
 
 The test is time, not kind of work. Quick commands are the manager's: PR states,
 labels, read-only checks, posting a drafted description, a conflict-free
@@ -15,7 +15,7 @@ scripted merge, one scan that answers Echo's question. Investigation, edits,
 builds and tests go to an agent, as does any merge with a conflict that a
 codemod can't regenerate.
 
-## How Echo likes it run
+## How Echo Likes It Run
 
 - **Questions, then one agent.** Settle all of a PR's questions with Echo, with
   a recommendation on each, then send one complete brief. Decisions that arrive
@@ -42,7 +42,7 @@ codemod can't regenerate.
 For walking Echo through pages in the browser, see
 [WALKTHROUGH.md](WALKTHROUGH.md).
 
-## In a cloud session
+## In a Cloud Session
 
 GraphQL returns 403 here, so `pr:state` and `pr:tree` don't run. Do both with
 the GitHub connector tools (`mcp__github__*`, loaded via ToolSearch), keeping
