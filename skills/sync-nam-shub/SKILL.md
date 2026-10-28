@@ -1,5 +1,5 @@
 ---
-name: guidance
+name: sync-nam-shub
 description: Set up or update the shared guidance in this repo, the core block in AGENTS.md and the shared skills in .claude/skills/. Use when Echo asks to set up or update guidance, or when pr-review reports the block is behind.
 ---
 
@@ -12,9 +12,9 @@ its folder under `.claude/skills/`. Setup is the same run on a repo that has
 nothing yet.
 
 1. On a new branch, from the repo root, run the script:
-   - set up already: `node .claude/skills/guidance/guidance.ts`
+   - set up already: `node .claude/skills/sync-nam-shub/guidance.ts`
    - first time: `git clone --depth 1 https://github.com/seanhealy/nam-shub /tmp/nam-shub`,
-     then `node /tmp/nam-shub/skills/guidance/guidance.ts`
+     then `node /tmp/nam-shub/skills/sync-nam-shub/guidance.ts`
 2. Check the diff touches only the guidance block and the skill folders the
    script listed. Anything else means the script misbehaved: stop and tell
    Echo.

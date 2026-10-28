@@ -12,7 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { syncGuidance } from "../skills/guidance/guidance.ts";
+import { syncGuidance } from "../skills/sync-nam-shub/guidance.ts";
 
 describe("syncGuidance", () => {
 	it("creates CLAUDE.md with the core block in a repo that has no instructions file", () => {
