@@ -13,7 +13,7 @@ After that, ask for the `sync-nam-shub` skill in the repo to update it.
 
 `node --test` runs the tests.
 
-## Extending a shared skill
+## Extending a Shared Skill
 
 A repo adds to a shared skill's file in `.claude/extensions/`, at the same path
 the file has here: additions to `skills/<name>/SKILL.md` go in
