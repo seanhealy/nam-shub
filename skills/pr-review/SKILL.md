@@ -11,7 +11,7 @@ code as it needs to be from here on, and don't editorialize about how it got
 written.
 
 The rules are in the nam-shub block of `AGENTS.md`. This skill is the
-description's shape, the order to check the rules in, and the two rubrics.
+description's shape, the order to check the rules in, and the comment rubric.
 
 ## The description
 
@@ -42,7 +42,7 @@ Explain a specific line with a comment on that line of the pull request.
 5. **Comments.** Run `comment-rubric.md` over every comment the diff adds or
    touches. Cite the category; for a rename, give the exact new name.
 6. **Tests.** Changed behavior has tests in this pull request. Run
-   `test-rubric.md` over them and cite the numbers.
+   the `testing` skill's `test-rubric.md` over them and cite the numbers.
 7. **Description.** It still matches the change and the shape above.
 8. **nam-shub.** Compare the commit in `AGENTS.md`'s
    `<!-- BEGIN:nam-shub@... -->` marker with
