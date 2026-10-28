@@ -24,7 +24,7 @@ describe("syncNamShub()", () => {
 		assert.equal(previous, undefined);
 		assert.equal(
 			read(repository, "CLAUDE.md"),
-			`<!-- BEGIN:nam-shub@${commit} -->\n\nWrite less code.\n\n<!-- END:nam-shub -->\n`,
+			`<!-- BEGIN:nam-shub@${commit} -->\n<!-- prettier-ignore-start -->\n\nWrite less code.\n\n<!-- prettier-ignore-end -->\n<!-- END:nam-shub -->\n`,
 		);
 	});
 
@@ -37,7 +37,7 @@ describe("syncNamShub()", () => {
 
 		assert.equal(
 			read(repository, "AGENTS.md"),
-			`<!-- BEGIN:nam-shub@${commit} -->\n\nWrite less code.\n\n<!-- END:nam-shub -->\n\n# Project One\n\nRun npm test.\n`,
+			`<!-- BEGIN:nam-shub@${commit} -->\n<!-- prettier-ignore-start -->\n\nWrite less code.\n\n<!-- prettier-ignore-end -->\n<!-- END:nam-shub -->\n\n# Project One\n\nRun npm test.\n`,
 		);
 		assert.equal(existsSync(join(repository, "CLAUDE.md")), false);
 	});
@@ -56,7 +56,7 @@ describe("syncNamShub()", () => {
 		assert.equal(previous, "1234567");
 		assert.equal(
 			read(repository, "AGENTS.md"),
-			`<!-- BEGIN:nam-shub@${commit} -->\n\nWrite less code.\n\n<!-- END:nam-shub -->\n\n# Project One\n`,
+			`<!-- BEGIN:nam-shub@${commit} -->\n<!-- prettier-ignore-start -->\n\nWrite less code.\n\n<!-- prettier-ignore-end -->\n<!-- END:nam-shub -->\n\n# Project One\n`,
 		);
 	});
 
