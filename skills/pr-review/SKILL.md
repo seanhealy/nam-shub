@@ -1,6 +1,6 @@
 ---
 name: pr-review
-description: Write a pull request description, or review a branch before its pull request goes up, against the shared guidance and the comment and test rubrics. Use when starting a change, before a pull request is set to review requested, or when Echo asks for a self review.
+description: Write a pull request description, or review a branch before its pull request goes up, against nam-shub and the comment and test rubrics. Use when starting a change, before a pull request is set to review requested, or when Echo asks for a self review.
 ---
 
 # Pull request review
@@ -10,7 +10,7 @@ the change starts; run the review once the shape has stopped moving. Judge the
 code as it needs to be from here on, and don't editorialize about how it got
 written.
 
-The rules are in the shared guidance block of `AGENTS.md`. This skill is the
+The rules are in the nam-shub block of `AGENTS.md`. This skill is the
 description's shape, the order to check the rules in, and the comment rubric.
 
 ## The description
@@ -44,10 +44,10 @@ Explain a specific line with a comment on that line of the pull request.
 6. **Tests.** Changed behavior has tests in this pull request. Run
    the `testing` skill's `test-rubric.md` over them and cite the numbers.
 7. **Description.** It still matches the change and the shape above.
-8. **Guidance.** Compare the commit in `AGENTS.md`'s
-   `<!-- BEGIN:guidance@... -->` marker with
+8. **nam-shub.** Compare the commit in `AGENTS.md`'s
+   `<!-- BEGIN:nam-shub@... -->` marker with
    `git ls-remote https://github.com/seanhealy/nam-shub HEAD`. If that commit
-   doesn't start with the stamp, say the guidance is behind and suggest the
+   doesn't start with the stamp, say nam-shub is behind and suggest the
    `sync-nam-shub` skill. Don't update it in this pull request.
 
 ## What to report

@@ -1,4 +1,4 @@
-# Shared guidance
+# nam-shub
 
 The rules for every repo. This block is generated from `core.md` in
 `seanhealy/nam-shub` by the `sync-nam-shub` skill and replaced whole on each
