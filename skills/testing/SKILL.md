@@ -73,6 +73,13 @@ behaviour, not the call that produces it: "shows a success message", not
 When a test fails, it should be clear which behaviour broke. Several
 expectations are fine when they check one behaviour together.
 
+## Query what the user sees
+
+Find elements by role, label or text through the test library's queries, and
+click and type through them too: `getByRole("alert")`, not
+`container.querySelector(".error")`. A user can't reach the DOM node a render
+helper hands back, so the test doesn't either.
+
 ## Fake what adds complexity
 
 A unit test tests one unit. Fake a dependency when the real one would add setup
