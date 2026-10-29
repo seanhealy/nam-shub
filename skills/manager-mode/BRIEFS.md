@@ -2,12 +2,20 @@
 
 The agent knows only the brief and the repo. What it can't find there:
 
+- **The goal, the constraints and what's out of scope.** Never the
+  implementation: no "shape" section, and no extras (focus handling, request
+  cancelling, fallbacks, preloads) Echo didn't ask for.
 - **Echo's decisions,** in Echo's words where the wording matters. Mark
   anything the manager added as the manager's, so a reviewer can challenge it.
 - **Where to work.** A new branch: worktree isolation, base on `origin/<base>`,
   `git push origin HEAD:<branch>`. An existing branch: no isolation, the
   worktree path, `git pull --ff-only` first.
-- **Which calls to report rather than make.**
+- **Which calls to report rather than make.** Edge cases a reviewer raises
+  (performance, accessibility extras) go to Echo as questions, not as work
+  already decided.
+- **A plan first** for non-trivial work: what already exists, whether it needs
+  to exist, the smallest version (core.md's Think First). Echo sees it before
+  any code.
 - **The method,** when the obvious one is slow: start from data already in hand,
   script mechanical edits, name the concurrency for bulk fetches.
 - **Echo's standing rules:** one-line commit subjects; never push to main,
@@ -17,7 +25,8 @@ The agent knows only the brief and the repo. What it can't find there:
 - **The report wanted:** short, with PR number, shas, what was checked and the
   judgement calls.
 
-A reviewer also gets the PR's intent and decisions, fixes only mechanical
+A reviewer's brief opens with the standing question: what here doesn't need to
+exist? It also gets the PR's intent and decisions, fixes only mechanical
 defects, and drafts description changes to the scratchpad. A browser agent
 works in background tabs of Echo's one window (`Target.createTarget` with
 `background: true`) and touches only its own tabs. Long research runs report
@@ -45,6 +54,10 @@ the agent can't miss them.
 - Labels and draft state are the manager's. Don't post on GitHub unless this
   brief says to.
 - Report short: PR number, shas, what was checked, the judgement calls.
-- Reviewers: fix only mechanical defects; draft description changes to the
-  scratchpad.
+- Non-trivial work: send the plan first (what exists, does it need to exist,
+  the smallest version). No code until Echo has seen it.
+- Build only what this brief names. Anything extra, and any edge case you
+  find, is a question for Echo.
+- Reviewers: start with what here doesn't need to exist; fix only mechanical
+  defects; draft description changes to the scratchpad.
 ```
