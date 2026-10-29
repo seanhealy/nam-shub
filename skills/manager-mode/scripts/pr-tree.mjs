@@ -24,7 +24,7 @@ const USAGE = `Print open PRs as a tree nested by base branch.
 Usage: pr-tree [--repo owner/name]
 
 Leading mark: ● mergeable, ✕ conflicting, ⭘ unknown (coloured unless NO_COLOR
-is set). PRs with no state label go on one "untracked" line at the end, author
+is set). PRs with no emoji label go on one "untracked" line at the end, author
 in brackets.`;
 
 const { values, positionals } = parseCommandLine(USAGE, { repo: repoOption });
