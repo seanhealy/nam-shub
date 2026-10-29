@@ -21,12 +21,11 @@ codemod can't regenerate.
   The Operator, with a recommendation on each, then send one complete brief.
   Decisions that arrive mid-run are batched into one message, or the agent is
   relaunched. See [BRIEFS.md](BRIEFS.md).
-- **PR state is honest.** `npm run pr:state` moves the moment work moves;
-  The Operator reads the tree to know what's waiting on whom. `approved` is
-  The Operator's alone. `self review` means the manager or an agent is still
-  working on the PR; once the reviews are done and nothing is left for the
-  manager, it moves to `review requested` even while CI runs, and back to
-  `working` if CI fails.
+- **PR state is honest.** `pr-state` moves the moment work moves; The Operator
+  reads the tree to know what's waiting on whom. `approved` is The Operator's
+  alone. `self review` means the manager or an agent is still working on the
+  PR; once the reviews are done and nothing is left for the manager, it moves
+  to `review requested` even while CI runs, and back to `working` if CI fails.
 - **A fresh reviewer before `review requested`.** A different agent reviews
   every PR and drafts description fixes for the manager to post. It starts right
   away; open questions go in its brief as things to report, not change.
@@ -40,14 +39,15 @@ codemod can't regenerate.
   its completion notification. Merging includes removing the worktree and local
   branch.
 
-For walking The Operator through pages in the browser, see
-[WALKTHROUGH.md](WALKTHROUGH.md).
+The PR scripts (`pr-state`, `pr-tree`, `pr-status`, `pr-comment`) are in
+`scripts/`; see [SCRIPTS.md](SCRIPTS.md). For walking The Operator through
+pages in the browser, see [WALKTHROUGH.md](WALKTHROUGH.md).
 
 ## In a Cloud Session
 
-GraphQL returns 403 here, so `pr:state` and `pr:tree` don't run. Do both with
-the GitHub connector tools (`mcp__github__*`, loaded via ToolSearch), keeping
-the scripts' rules.
+GraphQL returns 403 here, so the PR scripts don't run. Set states and read the
+tree with the GitHub connector tools (`mcp__github__*`, loaded via ToolSearch),
+keeping the scripts' rules.
 
 - **Read first.** `pull_request_read` `get` gives state, draft, base, head and
   labels. A PR with no labels has no `labels` key. `issue_read` `get_labels`
