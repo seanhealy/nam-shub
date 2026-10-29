@@ -1,6 +1,6 @@
 ---
 name: sync-nam-shub
-description: Set up or update nam-shub in this repo, the nam-shub block in AGENTS.md and the shared skills in .claude/skills/. Use when Echo asks to set up or update nam-shub.
+description: Set up or update nam-shub in this repo, the nam-shub block in AGENTS.md and the shared skills in .claude/skills/. Use when The Operator asks to set up or update nam-shub.
 ---
 
 # Sync nam-shub
@@ -17,7 +17,7 @@ nothing yet.
      then `node /tmp/nam-shub/skills/sync-nam-shub/sync-nam-shub.ts`
 2. Check the diff touches only the nam-shub block and the skill folders the
    script listed. Anything else means the script misbehaved: stop and tell
-   Echo.
+   The Operator.
 3. Open a pull request titled with the script's first line. Put its changes
    link in the description when it printed one.
 4. On a first setup, list the repo's own rules that now repeat the core under

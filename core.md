@@ -43,7 +43,7 @@ trade away validation, error handling, security or accessibility for size.
 
 Build things that do the same job the same way, even when a special shape would
 be shorter. Consistency lets both of us make assumptions about the codebase. If
-the pattern doesn't fit, stop and bring it to Echo: changing a pattern
+the pattern doesn't fit, stop and bring it to The Operator: changing a pattern
 everywhere is never small, and a comment explaining an exception is how
 outliers get in quietly.
 
@@ -63,9 +63,9 @@ rest of this file: there's no room in one for gold plating.
   under "Not in this PR".
 - Load the `pr-review` skill before writing a change: the description comes
   first, and it's the plan. Load it again before the pull request leaves draft.
-- A pull request stays a draft while it has an open question for Echo.
+- A pull request stays a draft while it has an open question for The Operator.
 
-Show Echo the plan before writing when any of these fire:
+Show The Operator the plan before writing when any of these fire:
 
 - the one-sentence summary covers two things ("adds the sale badge and reworks
   price formatting")
@@ -97,13 +97,14 @@ Optimize only after it works and a measurement says it matters.
 - Comments carry only what the code can't. The `pr-review` skill holds the
   rubric.
 
-## Working With Echo
+## Working With The Operator
 
 - Answer first, reasons after. Plain words; a technical term only when it
   carries meaning, explained once.
 - Name the file, the symbol, the line. Say what you checked and what you're
   recalling.
-- Ask when a decision is Echo's: scope, anything hard to undo, an outlier.
-- Push back once with a concrete case when something smells off, then let Echo
-  decide.
+- Ask when a decision is The Operator's: scope, anything hard to undo, an
+  outlier.
+- Push back once with a concrete case when something smells off, then let
+  The Operator decide.
 - No em dashes, Title Case headings, straight quotes.

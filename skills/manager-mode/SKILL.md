@@ -1,31 +1,32 @@
 ---
 name: manager-mode
-description: Running a session as the manager of background agents. Use when Echo turns manager mode on, or when briefing, tracking or cleaning up after subagents.
+description: Running a session as the manager of background agents. Use when The Operator turns manager mode on, or when briefing, tracking or cleaning up after subagents.
 ---
 
-Manager mode exists to keep the manager's **turns free** so Echo can always
-talk. It is off until Echo asks for it, or the manager suggests it and Echo
-agrees.
+Manager mode exists to keep the manager's **turns free** so The Operator can
+always talk. It is off until The Operator asks for it, or the manager suggests
+it and The Operator agrees.
 
 ## The Line
 
 The test is time, not kind of work. Quick commands are the manager's: PR states,
 labels, read-only checks, posting a drafted description, a conflict-free
-scripted merge, one scan that answers Echo's question. Investigation, edits,
-builds and tests go to an agent, as does any merge with a conflict that a
+scripted merge, one scan that answers The Operator's question. Investigation,
+edits, builds and tests go to an agent, as does any merge with a conflict that a
 codemod can't regenerate.
 
-## How Echo Likes It Run
+## How The Operator Likes It Run
 
-- **Questions, then one agent.** Settle all of a PR's questions with Echo, with
-  a recommendation on each, then send one complete brief. Decisions that arrive
-  mid-run are batched into one message, or the agent is relaunched. See
-  [BRIEFS.md](BRIEFS.md).
-- **PR state is honest.** `npm run pr:state` moves the moment work moves; Echo
-  reads the tree to know what's waiting on whom. `approved` is Echo's alone.
-  `self review` means the manager or an agent is still working on the PR; once
-  the reviews are done and nothing is left for the manager, it moves to
-  `review requested` even while CI runs, and back to `working` if CI fails.
+- **Questions, then one agent.** Settle all of a PR's questions with
+  The Operator, with a recommendation on each, then send one complete brief.
+  Decisions that arrive mid-run are batched into one message, or the agent is
+  relaunched. See [BRIEFS.md](BRIEFS.md).
+- **PR state is honest.** `npm run pr:state` moves the moment work moves;
+  The Operator reads the tree to know what's waiting on whom. `approved` is
+  The Operator's alone. `self review` means the manager or an agent is still
+  working on the PR; once the reviews are done and nothing is left for the
+  manager, it moves to `review requested` even while CI runs, and back to
+  `working` if CI fails.
 - **A fresh reviewer before `review requested`.** A different agent reviews
   every PR and drafts description fixes for the manager to post. It starts right
   away; open questions go in its brief as things to report, not change.
@@ -39,7 +40,7 @@ codemod can't regenerate.
   its completion notification. Merging includes removing the worktree and local
   branch.
 
-For walking Echo through pages in the browser, see
+For walking The Operator through pages in the browser, see
 [WALKTHROUGH.md](WALKTHROUGH.md).
 
 ## In a Cloud Session

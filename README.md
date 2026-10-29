@@ -1,8 +1,8 @@
 # nam-shub
 
-The shared rules and skills for Echo's repos. `core.md` is synced into each
-repo's `AGENTS.md`, and the skills in `skills/` into its `.claude/skills/`. Edit
-them here, never in the synced copies.
+The shared rules and skills for The Operator's repos. `core.md` is synced into
+each repo's `AGENTS.md`, and the skills in `skills/` into its `.claude/skills/`.
+Edit them here, never in the synced copies.
 
 To set up a repo, ask the agent working in it:
 
