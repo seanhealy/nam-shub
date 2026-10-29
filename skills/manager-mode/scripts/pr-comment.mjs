@@ -48,11 +48,9 @@ const COMMANDS = {
 			{ required: ["pr", "body"] },
 			USAGE,
 		);
-		return postComment(
-			resolveRepo(values.repo),
-			parsePositiveInteger(pr, "pr"),
-			parseText(body, "body"),
-		);
+		const prNumber = parsePositiveInteger(pr, "pr");
+		const text = parseText(body, "body");
+		return postComment(resolveRepo(values.repo), prNumber, text);
 	},
 
 	reply(positionals) {
@@ -70,12 +68,16 @@ const COMMANDS = {
 			{ required: ["pr", "path", "line", "body"] },
 			USAGE,
 		);
+		const prNumber = parsePositiveInteger(pr, "pr");
+		const filePath = parseText(path, "path");
+		const lineNumber = parsePositiveInteger(line, "line");
+		const text = parseText(body, "body");
 		return postLine(
 			resolveRepo(values.repo),
-			parsePositiveInteger(pr, "pr"),
-			parseText(path, "path"),
-			parsePositiveInteger(line, "line"),
-			parseText(body, "body"),
+			prNumber,
+			filePath,
+			lineNumber,
+			text,
 		);
 	},
 };

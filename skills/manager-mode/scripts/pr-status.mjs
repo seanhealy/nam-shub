@@ -2,11 +2,10 @@
 // pr-status.mjs: Read-only Pull Request status reporter.
 //
 // Safe by construction: every report is built from a CLOSED set of named
-// SECTIONS, each of which reads through one of two hardcoded GitHub reads
-// (`gh pr view --json <fields>` or the review-threads GraphQL query). Callers
-// never supply a query and never parse raw JSON. Every gh call is routed
-// through a local read-only allowlist (assertReadOnly), so nothing here can
-// mutate a PR, a repo, or anything on GitHub. It is safe to blanket-allow.
+// SECTIONS and commands, and every GitHub read they make is hardcoded here.
+// Callers never supply a query and never parse raw JSON. Every gh call is
+// routed through a local read-only allowlist (assertReadOnly), so nothing here
+// can mutate a PR, a repo, or anything on GitHub. It is safe to blanket-allow.
 
 import {
 	execGitHub,
@@ -374,9 +373,10 @@ const COMMANDS = {
 						{ required: ["pr"] },
 						USAGE,
 					);
+					const prNumber = parsePositiveInteger(pr, "pr");
 					return composeSections(
 						resolveRepo(values.repo),
-						parsePositiveInteger(pr, "pr"),
+						prNumber,
 						preset.include,
 					);
 				},
@@ -389,11 +389,9 @@ const COMMANDS = {
 		description: "Compose any sections in one call.",
 		run(positionals, values) {
 			const { pr } = readPositionals(positionals, { required: ["pr"] }, USAGE);
-			return composeSections(
-				resolveRepo(values.repo),
-				parsePositiveInteger(pr, "pr"),
-				parseInclude(values.include),
-			);
+			const prNumber = parsePositiveInteger(pr, "pr");
+			const sectionNames = parseInclude(values.include);
+			return composeSections(resolveRepo(values.repo), prNumber, sectionNames);
 		},
 	},
 
@@ -406,11 +404,8 @@ const COMMANDS = {
 				{ required: ["pr", "file"] },
 				USAGE,
 			);
-			return fileDiff(
-				resolveRepo(values.repo),
-				parsePositiveInteger(pr, "pr"),
-				file,
-			);
+			const prNumber = parsePositiveInteger(pr, "pr");
+			return fileDiff(resolveRepo(values.repo), prNumber, file);
 		},
 	},
 
