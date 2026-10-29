@@ -39,9 +39,10 @@ codemod can't regenerate.
   its completion notification. Merging includes removing the worktree and local
   branch.
 
-The PR scripts (`pr-state`, `pr-tree`, `pr-status`, `pr-comment`) are in
-`scripts/`; see [SCRIPTS.md](SCRIPTS.md). For walking The Operator through
-pages in the browser, see [WALKTHROUGH.md](WALKTHROUGH.md).
+The PR scripts (`pr-state`, `pr-tree`, `pr-status`, `pr-comment`) run from the
+repo's checkout as `node ${CLAUDE_SKILL_DIR}/scripts/<name>.mjs`; see
+[SCRIPTS.md](SCRIPTS.md). For walking The Operator through pages in the
+browser, see [WALKTHROUGH.md](WALKTHROUGH.md).
 
 ## In a Cloud Session
 

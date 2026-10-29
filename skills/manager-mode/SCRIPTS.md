@@ -1,14 +1,9 @@
 # PR Scripts
 
-Four scripts in `scripts/`, run from the repo's checkout:
-
-```bash
-node ${CLAUDE_SKILL_DIR}/scripts/<name>.mjs ...
-```
-
-Each defaults to the current checkout's repo, takes `--repo owner/name` for
-another, and prints its usage with `--help`. They need `gh` logged in with
-GraphQL, so they don't run in a cloud session (see SKILL.md).
+Four scripts in `scripts/`, run the way SKILL.md says. Each defaults to the
+current checkout's repo, takes `--repo owner/name` for another, and prints its
+usage with `--help`. They need `gh` logged in with GraphQL, so they don't run
+in a cloud session (see SKILL.md).
 
 Every `gh` call is hardcoded, with input only ever filling its variables, and
 each write is checked against the script's own allowlist of mutations.
