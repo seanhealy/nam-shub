@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// pr-state.mjs — Set or show a PR's state label, keeping its draft flag in
+// pr-state.mjs: Set or show a PR's state label, keeping its draft flag in
 // step.
 //
 // A PR carries one state label at a time. Setting a state swaps out whichever

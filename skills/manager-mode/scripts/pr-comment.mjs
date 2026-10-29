@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// pr-comment.mjs — Write companion to pr-status.mjs.
+// pr-comment.mjs: Write companion to pr-status.mjs.
 //
 // Constrained by construction: this script exposes a CLOSED set of comment
 // commands, each running one hardcoded GraphQL mutation that must pass a local
 // allowlist of mutation names. It can ONLY post PR comments and review
-// threads/replies — it cannot edit, merge, close, label, or run an arbitrary
+// threads/replies; it cannot edit, merge, close, label, or run an arbitrary
 // `gh` command. User input only ever fills mutation *variables* (via gh's -f/-F
 // flags), never the query text, so it cannot inject GraphQL.
 //

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// pr-tree.mjs — Print open PRs as a tree nested by base branch. Read-only.
+// pr-tree.mjs: Print open PRs as a tree nested by base branch. Read-only.
 //
 // A label counts when its name starts with an emoji, so the icon comes from
 // the label itself. Branch labels (feature, stacked) print after the state.

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// pr-status.mjs — Read-only Pull Request status reporter.
+// pr-status.mjs: Read-only Pull Request status reporter.
 //
 // Safe by construction: every report is built from a CLOSED set of named
 // SECTIONS, each of which reads through one of two hardcoded GitHub reads
 // (`gh pr view --json <fields>` or the review-threads GraphQL query). Callers
 // never supply a query and never parse raw JSON. Every gh call is routed
 // through a local read-only allowlist (assertReadOnly), so nothing here can
-// mutate a PR, a repo, or anything on GitHub — it is safe to blanket-allow.
+// mutate a PR, a repo, or anything on GitHub. It is safe to blanket-allow.
 
 import {
 	execGitHub,
@@ -281,16 +281,10 @@ const PRESETS = {
 function composeSections(repo, prNumber, includeNames) {
 	const sections = includeNames.map((name) => [name, SECTIONS[name]]);
 
-	const prFields = new Set();
-	let needsThreads = false;
-	for (const [, section] of sections) {
-		for (const field of section.prFields ?? []) {
-			prFields.add(field);
-		}
-		if (section.needsThreads) {
-			needsThreads = true;
-		}
-	}
+	const prFields = new Set(
+		sections.flatMap(([, section]) => section.prFields ?? []),
+	);
+	const needsThreads = sections.some(([, section]) => section.needsThreads);
 
 	const pullRequest = prFields.size
 		? fetchPullRequest(repo, prNumber, [...prFields])
@@ -298,14 +292,16 @@ function composeSections(repo, prNumber, includeNames) {
 	const threads = needsThreads ? fetchReviewThreads(repo, prNumber) : undefined;
 
 	const context = { pullRequest, threads };
-	const data = {};
-	const blocks = [];
-	for (const [name, section] of sections) {
-		const result = section.distill(context);
-		data[name] = result.data;
-		blocks.push(result.lines.join("\n"));
-	}
-	return { data, lines: [blocks.join("\n\n")] };
+	const results = sections.map(([name, section]) => [
+		name,
+		section.distill(context),
+	]);
+	return {
+		data: Object.fromEntries(
+			results.map(([name, result]) => [name, result.data]),
+		),
+		lines: [results.map(([, result]) => result.lines.join("\n")).join("\n\n")],
+	};
 }
 
 // One file's patch out of a PR diff. Scoped to a single file so the output
@@ -603,14 +599,14 @@ function assertReadOnly(args) {
 	if (!allowed) {
 		fail(`refusing non-read-only gh command: gh ${args.slice(0, 2).join(" ")}`);
 	}
-	for (const argument of args) {
+	args.forEach((argument) => {
 		if (argument === "-X" || argument === "--method") {
 			fail("refusing gh call with an explicit HTTP method");
 		}
 		if (/\bmutation\b/.test(argument)) {
 			fail("refusing gh call containing a GraphQL mutation");
 		}
-	}
+	});
 }
 
 // ── Small helpers ────────────────────────────────────────────────────────────
