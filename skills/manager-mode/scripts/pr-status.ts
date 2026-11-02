@@ -657,7 +657,7 @@ function fetchReviewThreads(repo: string, prNumber: number): ReviewThread[] {
 				author: comment.author?.login ?? "unknown",
 				body: comment.body ?? "",
 			}));
-			const first: Partial<ThreadComment> = comments[0] ?? {};
+			const first = comments[0] ?? {};
 			return {
 				id: thread.id,
 				resolved: thread.isResolved,
