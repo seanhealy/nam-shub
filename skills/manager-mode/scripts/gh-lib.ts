@@ -42,6 +42,10 @@ export function execGitHub(args: string[], { json = false } = {}) {
 	}
 }
 
+export type PullRequestState = "OPEN" | "CLOSED" | "MERGED";
+
+export type Mergeable = "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
+
 // A GraphQL variable as gh sends it: a number goes as an Int, an array as a
 // list.
 export type MutationVariables = Record<string, string | number | string[]>;
