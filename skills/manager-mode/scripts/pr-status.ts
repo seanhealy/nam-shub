@@ -31,7 +31,7 @@ type PullRequest = {
 	baseRefName: string;
 	headRefName: string;
 	url: string;
-	mergeable: string;
+	mergeable: "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
 	reviewDecision: string | null;
 	statusCheckRollup: Check[] | null;
 	changedFiles: number;
