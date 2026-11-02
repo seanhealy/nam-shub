@@ -30,29 +30,27 @@ import {
 	runAllowedMutation,
 	splitRepo,
 } from "./gh-lib.mjs";
+import { LABELS } from "./labels.mjs";
 
 // Each settable state by the plain words the command line takes, with its
 // label and whether the PR should be a draft while in it. An undefined draft
 // leaves the PR's draft status as it is.
 const STATES = new Map([
-	["working", { label: "🚧 working", draft: true }],
-	["self review", { label: "🔍 self review", draft: true }],
-	["needs decision", { label: "🤔 needs decision", draft: true }],
-	["blocked", { label: "⛔ blocked", draft: undefined }],
-	["review requested", { label: "👀 review requested", draft: false }],
+	["working", { label: LABELS.working, draft: true }],
+	["self review", { label: LABELS.selfReview, draft: true }],
+	["needs decision", { label: LABELS.needsDecision, draft: true }],
+	["blocked", { label: LABELS.blocked, draft: undefined }],
+	["review requested", { label: LABELS.reviewRequested, draft: false }],
 ]);
 
 // State labels the tool clears but never sets.
-const REMOVE_ONLY_LABELS = new Set(["✅ approved"]);
+const REMOVE_ONLY_LABELS = new Set([LABELS.approved]);
 
 const STATE_LABELS = new Set([
 	...[...STATES.values()].map((state) => state.label),
 	...REMOVE_ONLY_LABELS,
 ]);
 
-const STACKED_LABEL = "🥞 stacked";
-// The variation selector after the footprints is part of the label's name.
-const FEATURE_LABEL = "👣️ feature";
 const FEATURE_BRANCH_PREFIX = "feature/";
 
 const ALLOWED_MUTATIONS = new Set([
@@ -85,8 +83,8 @@ const pullRequest = readPullRequest(repo, prNumber);
 if (stateName) {
 	setState(pullRequest, stateName);
 }
-syncLabel(pullRequest, STACKED_LABEL, isStacked(pullRequest));
-syncLabel(pullRequest, FEATURE_LABEL, isFeature(pullRequest));
+syncLabel(pullRequest, LABELS.stacked, isStacked(pullRequest));
+syncLabel(pullRequest, LABELS.feature, isFeature(pullRequest));
 report(readPullRequest(repo, prNumber));
 
 // Checks and the draft change come first: draft is the call GitHub is likeliest
