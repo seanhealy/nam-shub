@@ -21,8 +21,7 @@ import {
 	splitRepo,
 } from "./gh-lib.ts";
 
-// The `gh pr view` JSON for the fields the sections ask for. Each section reads
-// only the fields it lists in prFields.
+// The `gh pr view` JSON for the fields the sections ask for.
 type PullRequest = {
 	number: number;
 	title: string;
