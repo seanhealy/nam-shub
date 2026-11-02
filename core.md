@@ -105,8 +105,9 @@ Optimize only after it works and a measurement says it matters.
   recalling.
 - Ask when a decision is The Operator's: scope, anything hard to undo, an
   outlier.
-- Give each agent the smallest model that does its job well. Fable needs
-  The Operator's yes every time, even when an earlier plan named it.
+- Pick each agent's model to fit the job; that's your call. Fable is the
+  exception: it needs The Operator's yes every time, even when an earlier plan
+  named it.
 - Push back once with a concrete case when something smells off, then let
   The Operator decide.
 - No em dashes, Title Case headings, straight quotes.
