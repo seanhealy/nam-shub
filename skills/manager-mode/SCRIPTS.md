@@ -15,13 +15,13 @@ Keep `pr-comment` behind a permission prompt.
 Sets a PR's state label and keeps its draft status in step. A PR carries one
 state label at a time, in any order; setting one swaps out the old one.
 
-| State                 | Argument           | Draft     |
-| --------------------- | ------------------ | --------- |
-| `🚧 working`          | `working`          | yes       |
-| `🔍 self review`      | `self-review`      | yes       |
-| `🤔 needs decision`   | `needs-decision`   | yes       |
-| `⛔ blocked`          | `blocked`          | unchanged |
-| `👀 review requested` | `review-requested` | no        |
+| State                 | Argument           | Draft     | Colour   |
+| --------------------- | ------------------ | --------- | -------- |
+| `🚧 working`          | `working`          | yes       | `F6F8FA` |
+| `🔍 self review`      | `self-review`      | yes       | `F6F8FA` |
+| `🤔 needs decision`   | `needs-decision`   | yes       | `FCEFE5` |
+| `⛔ blocked`          | `blocked`          | unchanged | `FFEDEC` |
+| `👀 review requested` | `review-requested` | no        | `E8F4FE` |
 
 ```bash
 pr-state.mjs 137                    # show the state and draft status
@@ -36,8 +36,20 @@ refuses closed and merged PRs.
 ## pr-tree
 
 Open PRs as a tree nested by base branch, each with its mergeability mark
-(● mergeable, ✕ conflicting, ⭘ unknown) and labels. PRs with no emoji label go
-on one "untracked" line at the end.
+(● mergeable, ✕ conflicting, ⭘ unknown) and the emoji of each of its labels.
+PRs with no emoji label go on one "untracked" line, and a legend at the end
+names every mark and label, whether or not it appears.
+
+```bash
+pr-tree.mjs                    # every open PR
+pr-tree.mjs --description 137  # 137's stack, for its description
+```
+
+`--description` prints the stack the PR is in, from the default branch down
+through every PR stacked on it, as a `## Stack` section between
+`<!-- pr-tree:start -->` and `<!-- pr-tree:end -->`. The tree sits in a `<pre>`
+with each PR number linked, the PR's own line in bold, and the legend below.
+It only prints; writing it into a description is the manager's job.
 
 ## pr-status
 

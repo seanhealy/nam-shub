@@ -26,6 +26,8 @@ codemod can't regenerate.
   alone. `self review` means the manager or an agent is still working on the
   PR; once the reviews are done and nothing is left for the manager, it moves
   to `review requested` even while CI runs, and back to `working` if CI fails.
+- **Stack sections stay current.** Whenever a PR is opened, retargeted or
+  merged, refresh each open PR's Stack section from `pr-tree --description`.
 - **A fresh reviewer before `review requested`.** A different agent reviews
   every PR and drafts description fixes for the manager to post. It starts right
   away; open questions go in its brief as things to report, not change.
@@ -64,7 +66,8 @@ keeping the scripts' rules.
 - **The tree.** `list_pull_requests` (open, `fields` for number, draft, labels,
   head, base, user), nested by base. Its list carries no mergeability, so run
   `pull_request_read` `get` per PR: `mergeable_state` `dirty` is ✕, `unknown`
-  is ⭘, anything else is ●.
+  is ⭘, anything else is ●. Draw it the way `pr-tree` does: each label as its
+  emoji, then the legend.
 
 ## Gotchas
 
