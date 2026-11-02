@@ -7,6 +7,7 @@
 // routed through a local read-only allowlist (assertReadOnly), so nothing here
 // can mutate a PR, a repo, or anything on GitHub. It is safe to blanket-allow.
 
+import type { Mergeable, PullRequestState } from "./gh-lib.ts";
 import {
 	execGitHub,
 	fail,
@@ -25,13 +26,13 @@ import {
 type PullRequest = {
 	number: number;
 	title: string;
-	state: "OPEN" | "CLOSED" | "MERGED";
+	state: PullRequestState;
 	isDraft: boolean;
 	author: { login: string } | null;
 	baseRefName: string;
 	headRefName: string;
 	url: string;
-	mergeable: "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
+	mergeable: Mergeable;
 	reviewDecision: string | null;
 	statusCheckRollup: Check[] | null;
 	changedFiles: number;

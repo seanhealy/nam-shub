@@ -6,6 +6,7 @@
 // that emoji; the legend names every mark and label the scripts know. Branch
 // labels (feature, stacked) print after the state.
 
+import type { Mergeable } from "./gh-lib.ts";
 import {
 	execGitHub,
 	fail,
@@ -16,9 +17,6 @@ import {
 	resolveRepo,
 } from "./gh-lib.ts";
 import { LABELS } from "./labels.ts";
-
-// GitHub's mergeable state for a PR.
-type Mergeable = "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
 
 // A mergeability mark: its glyph, the ANSI colour code it prints in, and its
 // name in the legend.
