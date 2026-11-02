@@ -17,12 +17,13 @@ import {
 	fail,
 	parseCommandLine,
 	parsePositiveInteger,
-	readPositionals,
 	repoOption,
 	resolveRepo,
 	runAllowedMutation,
 	splitRepo,
 } from "./gh-lib.ts";
+import type { MutationVariables } from "./gh-lib.ts";
+import type { PullRequest } from "./pr-tree.ts";
 import {
 	readOpenPullRequests,
 	STACK_END,
@@ -47,12 +48,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const { values, positionals } = parseCommandLine(USAGE, {
 		repo: repoOption,
 	});
-	const { prs } = readPositionals(
-		positionals,
-		{ required: [], variadic: "prs" },
-		USAGE,
-	);
-	const numbers = prs.map((pr) => parsePositiveInteger(pr, "pr"));
+	// Any number of PRs, so they don't fit readPositionals' fixed names.
+	const numbers = positionals.map((pr) => parsePositiveInteger(pr, "pr"));
 	const repo = resolveRepo(values.repo);
 	const pullRequests = readOpenPullRequests(repo);
 	const targets = numbers.length
@@ -64,7 +61,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 }
 
 // Writes one PR's section and says what happened to it.
-function describe(repo, pullRequests, number) {
+function describe(repo: string, pullRequests: PullRequest[], number: number) {
 	const section = stackSection(pullRequests, number);
 	if (section === undefined) {
 		return "skipped: not an open PR with an emoji label";
@@ -78,7 +75,7 @@ function describe(repo, pullRequests, number) {
 	return "updated";
 }
 
-export function withSection(body: string, section: string) {
+function withSection(body: string, section: string) {
 	const start = body.indexOf(STACK_START);
 	const end = body.indexOf(STACK_END, start);
 	if (start === -1 || end === -1) {
@@ -99,7 +96,7 @@ function readBody(repo: string, number: number) {
 				pullRequest(number: $number) { id body }
 			}
 		}`;
-	return execGitHub(
+	const response = execGitHub(
 		[
 			"api",
 			"graphql",
@@ -113,7 +110,10 @@ function readBody(repo: string, number: number) {
 			`number=${number}`,
 		],
 		{ json: true },
-	).data.repository.pullRequest;
+	) as {
+		data: { repository: { pullRequest: { id: string; body: string } } };
+	};
+	return response.data.repository.pullRequest;
 }
 
 function updateBody(pullRequestId: string, body: string) {
@@ -130,13 +130,15 @@ function updateBody(pullRequestId: string, body: string) {
 
 // The allowlist checks the mutation's name; this also checks it sets only the
 // body, so an edit can't widen it to the title, base or state.
-export function runMutation(query: string, variables: Record<string, string>) {
-	const fields = [...query.matchAll(/input:\s*\{([^}]*)\}/g)].flatMap(
-		(match) => [...match[1].matchAll(/(\w+)\s*:/g)].map((field) => field[1]),
+export function runMutation(query: string, variables: MutationVariables) {
+	const input = query.match(/updatePullRequest\s*\(\s*input:\s*\{([^}]*)\}/);
+	const fields = [...(input?.[1] ?? "").matchAll(/(\w+)\s*:/g)].map(
+		(field) => field[1],
 	);
 	if (
-		fields.length !== ALLOWED_INPUT_FIELDS.length ||
-		fields.some((field) => !ALLOWED_INPUT_FIELDS.includes(field))
+		input &&
+		(fields.length !== ALLOWED_INPUT_FIELDS.length ||
+			fields.some((field) => !ALLOWED_INPUT_FIELDS.includes(field)))
 	) {
 		fail("refusing mutation that sets more than the body");
 	}

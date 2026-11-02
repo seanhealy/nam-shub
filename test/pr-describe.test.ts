@@ -193,8 +193,13 @@ function buildPullRequest(
 // The section pr-tree prints for the PR, against the same stand-in `gh`.
 function stackSection(pullRequests: PullRequest[], number: number) {
 	const bin = standInGitHub(pullRequests);
-	return run(bin, [PR_TREE, "--repo", "owner/repo", "--description", `${number}`])
-		.stdout.replace(/\n$/, "");
+	return run(bin, [
+		PR_TREE,
+		"--repo",
+		"owner/repo",
+		"--description",
+		`${number}`,
+	]).stdout.replace(/\n$/, "");
 }
 
 function runScript(pullRequests: PullRequest[], args: string[]) {

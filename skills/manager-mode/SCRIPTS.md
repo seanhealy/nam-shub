@@ -1,6 +1,6 @@
 # PR Scripts
 
-Four scripts in `scripts/`, run the way SKILL.md says. Each defaults to the
+Five scripts in `scripts/`, run the way SKILL.md says. Each defaults to the
 current checkout's repo, takes `--repo owner/name` for another, and prints its
 usage with `--help`. They need Node 22.18 or later, which runs TypeScript
 directly, and `gh` logged in with GraphQL, so they don't run in a cloud session
@@ -9,7 +9,7 @@ directly, and `gh` logged in with GraphQL, so they don't run in a cloud session
 Every `gh` call is hardcoded, with input only ever filling its variables, and
 each write is checked against the script's own allowlist of mutations.
 `pr-status` and `pr-tree` only read, so they are safe to allow without asking.
-Keep `pr-comment` behind a permission prompt.
+Keep `pr-comment` and `pr-describe` behind a permission prompt.
 
 ## pr-state
 
@@ -50,7 +50,24 @@ pr-tree.ts --description 137  # 137's stack, for its description
 through every PR stacked on it, as a `## Stack` section between
 `<!-- pr-tree:start -->` and `<!-- pr-tree:end -->`. The tree sits in a `<pre>`
 with each PR number linked, the PR's own line in bold, and the legend below.
-It only prints; writing it into a description is the manager's job.
+It only prints; `pr-describe` writes it into the description.
+
+## pr-describe
+
+Writes each PR's Stack section, exactly what `pr-tree --description` prints,
+into its description, and nothing else: its one write is `updatePullRequest`
+setting the body.
+
+```bash
+pr-describe.ts            # every open PR
+pr-describe.ts 137 138    # just these
+```
+
+It replaces only the text between `<!-- pr-tree:start -->` and
+`<!-- pr-tree:end -->`, or appends the section when the markers aren't there,
+so the rest of the body stays byte for byte. It prints one line per PR:
+updated, unchanged (the body already matches, so nothing is written) or
+skipped, for a PR that isn't open with an emoji label.
 
 ## pr-status
 
