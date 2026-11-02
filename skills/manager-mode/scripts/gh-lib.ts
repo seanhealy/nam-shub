@@ -75,37 +75,19 @@ export function runAllowedMutation(
 	);
 }
 
-// Accept the query only if it is a mutation whose every call is on the
-// allowlist. A backstop: the queries are hardcoded in each script, so this
-// guards against one being edited to call something destructive.
+// Accept the query only if it is a mutation whose every `name(input:` call is
+// on the allowlist. A backstop: the queries are hardcoded in each script, so
+// this guards against one being edited to call something destructive.
 function assertAllowedMutation(query: string, allowedMutations: Set<string>) {
 	if (!/^\s*mutation\b/.test(query)) {
 		fail("refusing gh call that is not a mutation");
 	}
-	const calls = topLevelFields(query);
+	const calls = [...query.matchAll(/(\w+)\s*\(\s*input\s*:/g)].map(
+		(match) => match[1],
+	);
 	if (!calls.length || calls.some((name) => !allowedMutations.has(name))) {
 		fail("refusing mutation off the allowlist");
 	}
-}
-
-// The fields directly inside each operation's braces, which in a mutation are
-// its calls, read past aliases, spacing and argument order. Anything else at
-// that level, a fragment spread or a directive, comes back as a name no
-// allowlist holds, so it is refused too.
-function topLevelFields(query: string) {
-	const tokens =
-		query
-			.replace(/"(?:[^"\\]|\\.)*"|#[^\n]*/g, " ")
-			.match(/\.\.\.|[A-Za-z_]\w*|[{}():]/g) ?? [];
-	let braces = 0;
-	let parentheses = 0;
-	return tokens.filter((token, index) => {
-		const topLevel = braces === 1 && parentheses === 0;
-		braces += token === "{" ? 1 : token === "}" ? -1 : 0;
-		parentheses += token === "(" ? 1 : token === ")" ? -1 : 0;
-		const isField = /^(\.\.\.|\w+)$/.test(token) && tokens[index + 1] !== ":";
-		return topLevel && isField;
-	});
 }
 
 function resolveCurrentRepo() {
