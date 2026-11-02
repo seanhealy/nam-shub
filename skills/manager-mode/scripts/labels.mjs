@@ -16,22 +16,22 @@ export const LABELS = {
 	},
 	needsDecision: {
 		name: "🤔 needs decision",
-		color: "F6CFB0",
+		color: "FCEFE5",
 		description: "Waiting on a decision from The Operator",
 	},
 	blocked: {
 		name: "⛔ blocked",
-		color: "FDC9C6",
+		color: "FFEDEC",
 		description: "Blocked on something outside this PR",
 	},
 	reviewRequested: {
 		name: "👀 review requested",
-		color: "B7DCFD",
+		color: "E8F4FE",
 		description: "Ready for The Operator's review",
 	},
 	approved: {
 		name: "✅ approved",
-		color: "BCE3C3",
+		color: "E9F6EB",
 		description: "Approved by The Operator",
 	},
 	stacked: {

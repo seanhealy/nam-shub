@@ -19,9 +19,9 @@ state label at a time, in any order; setting one swaps out the old one.
 | --------------------- | ------------------ | --------- | -------- |
 | `🚧 working`          | `working`          | yes       | `F6F8FA` |
 | `🔍 self review`      | `self-review`      | yes       | `F6F8FA` |
-| `🤔 needs decision`   | `needs-decision`   | yes       | `F6CFB0` |
-| `⛔ blocked`          | `blocked`          | unchanged | `FDC9C6` |
-| `👀 review requested` | `review-requested` | no        | `B7DCFD` |
+| `🤔 needs decision`   | `needs-decision`   | yes       | `FCEFE5` |
+| `⛔ blocked`          | `blocked`          | unchanged | `FFEDEC` |
+| `👀 review requested` | `review-requested` | no        | `E8F4FE` |
 
 ```bash
 pr-state.mjs 137                    # show the state and draft status
