@@ -36,15 +36,15 @@ import { LABELS } from "./labels.mjs";
 // label and whether the PR should be a draft while in it. An undefined draft
 // leaves the PR's draft status as it is.
 const STATES = new Map([
-	["working", { label: LABELS.working, draft: true }],
-	["self review", { label: LABELS.selfReview, draft: true }],
-	["needs decision", { label: LABELS.needsDecision, draft: true }],
-	["blocked", { label: LABELS.blocked, draft: undefined }],
-	["review requested", { label: LABELS.reviewRequested, draft: false }],
+	["working", { label: LABELS.working.name, draft: true }],
+	["self review", { label: LABELS.selfReview.name, draft: true }],
+	["needs decision", { label: LABELS.needsDecision.name, draft: true }],
+	["blocked", { label: LABELS.blocked.name, draft: undefined }],
+	["review requested", { label: LABELS.reviewRequested.name, draft: false }],
 ]);
 
 // State labels the tool clears but never sets.
-const REMOVE_ONLY_LABELS = new Set([LABELS.approved]);
+const REMOVE_ONLY_LABELS = new Set([LABELS.approved.name]);
 
 const STATE_LABELS = new Set([
 	...[...STATES.values()].map((state) => state.label),
@@ -83,8 +83,8 @@ const pullRequest = readPullRequest(repo, prNumber);
 if (stateName) {
 	setState(pullRequest, stateName);
 }
-syncLabel(pullRequest, LABELS.stacked, isStacked(pullRequest));
-syncLabel(pullRequest, LABELS.feature, isFeature(pullRequest));
+syncLabel(pullRequest, LABELS.stacked.name, isStacked(pullRequest));
+syncLabel(pullRequest, LABELS.feature.name, isFeature(pullRequest));
 report(readPullRequest(repo, prNumber));
 
 // Checks and the draft change come first: draft is the call GitHub is likeliest

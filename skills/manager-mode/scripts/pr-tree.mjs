@@ -23,7 +23,10 @@ const MARKS = {
 	UNKNOWN: { glyph: "⭘", color: "2", name: "unknown" },
 };
 const DRAFT_LABEL = "📝 draft";
-const LEGEND_LABELS = [...Object.values(LABELS), DRAFT_LABEL];
+const LEGEND_LABELS = [
+	...Object.values(LABELS).map((label) => label.name),
+	DRAFT_LABEL,
+];
 // The width of a line's connectors and PR name together, so the emojis after
 // it line up.
 const NAME_WIDTH = 46;

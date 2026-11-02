@@ -15,13 +15,13 @@ Keep `pr-comment` behind a permission prompt.
 Sets a PR's state label and keeps its draft status in step. A PR carries one
 state label at a time, in any order; setting one swaps out the old one.
 
-| State                 | Argument           | Draft     |
-| --------------------- | ------------------ | --------- |
-| `🚧 working`          | `working`          | yes       |
-| `🔍 self review`      | `self-review`      | yes       |
-| `🤔 needs decision`   | `needs-decision`   | yes       |
-| `⛔ blocked`          | `blocked`          | unchanged |
-| `👀 review requested` | `review-requested` | no        |
+| State                 | Argument           | Draft     | Colour   |
+| --------------------- | ------------------ | --------- | -------- |
+| `🚧 working`          | `working`          | yes       | `FBCA04` |
+| `🔍 self review`      | `self-review`      | yes       | `C5DEF5` |
+| `🤔 needs decision`   | `needs-decision`   | yes       | `D876E3` |
+| `⛔ blocked`          | `blocked`          | unchanged | `B60205` |
+| `👀 review requested` | `review-requested` | no        | `0E8A16` |
 
 ```bash
 pr-state.mjs 137                    # show the state and draft status
