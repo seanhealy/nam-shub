@@ -19,7 +19,7 @@
 // variables. It touches state labels, the stacked and feature labels, and
 // draft status, nothing else.
 
-import type { MutationVariables } from "./gh-lib.ts";
+import type { MutationVariables, PullRequestState } from "./gh-lib.ts";
 import {
 	execGitHub,
 	fail,
@@ -80,7 +80,7 @@ type PullRequestNode = {
 	id: string;
 	number: number;
 	url: string;
-	state: "OPEN" | "CLOSED" | "MERGED";
+	state: PullRequestState;
 	isDraft: boolean;
 	baseRefName: string;
 	headRefName: string;

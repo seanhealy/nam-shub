@@ -7,6 +7,7 @@
 // routed through a local read-only allowlist (assertReadOnly), so nothing here
 // can mutate a PR, a repo, or anything on GitHub. It is safe to blanket-allow.
 
+import type { Mergeable, PullRequestState } from "./gh-lib.ts";
 import {
 	execGitHub,
 	fail,
@@ -20,18 +21,17 @@ import {
 	splitRepo,
 } from "./gh-lib.ts";
 
-// The `gh pr view` JSON for the fields the sections ask for. Each section reads
-// only the fields it lists in prFields.
+// The `gh pr view` JSON for the fields the sections ask for.
 type PullRequest = {
 	number: number;
 	title: string;
-	state: "OPEN" | "CLOSED" | "MERGED";
+	state: PullRequestState;
 	isDraft: boolean;
 	author: { login: string } | null;
 	baseRefName: string;
 	headRefName: string;
 	url: string;
-	mergeable: "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
+	mergeable: Mergeable;
 	reviewDecision: string | null;
 	statusCheckRollup: Check[] | null;
 	changedFiles: number;
@@ -656,7 +656,7 @@ function fetchReviewThreads(repo: string, prNumber: number): ReviewThread[] {
 				author: comment.author?.login ?? "unknown",
 				body: comment.body ?? "",
 			}));
-			const first: Partial<ThreadComment> = comments[0] ?? {};
+			const first = comments[0] ?? {};
 			return {
 				id: thread.id,
 				resolved: thread.isResolved,
