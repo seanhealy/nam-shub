@@ -8,9 +8,11 @@
 // mutation allowlist to `runAllowedMutation`, so the trust boundary stays
 // visible inside each script.
 
-import { execFileSync } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import type { ParseArgsOptionsConfig } from "node:util";
-import { parseArgs } from "node:util";
+import { parseArgs, promisify } from "node:util";
+
+const GH_OPTIONS = { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 } as const;
 
 // Run `gh` with a fixed argument array (never a shell string, so there is no
 // command injection). Returns trimmed stdout text, or the parsed JSON when
@@ -21,10 +23,7 @@ export function execGitHub(args: string[], options: { json: true }): unknown;
 export function execGitHub(args: string[], { json = false } = {}) {
 	let output: string;
 	try {
-		output = execFileSync("gh", args, {
-			encoding: "utf8",
-			maxBuffer: 10 * 1024 * 1024,
-		});
+		output = execFileSync("gh", args, GH_OPTIONS);
 	} catch (error) {
 		const { stderr, message } = error as Error & { stderr?: string };
 		fail(`gh command failed: ${stderr?.toString().trim() ?? message}`);
@@ -59,6 +58,36 @@ export function runAllowedMutation(
 	variables: MutationVariables,
 	allowedMutations: Set<string>,
 ) {
+	return execGitHub(mutationArgs(query, variables, allowedMutations), {
+		json: true,
+	});
+}
+
+// runAllowedMutation without blocking, so several can be in flight. A failed
+// gh call rejects with gh's error instead of exiting, so the caller can report
+// it and carry on with the rest.
+export async function runAllowedMutationAsync(
+	query: string,
+	variables: MutationVariables,
+	allowedMutations: Set<string>,
+) {
+	const args = mutationArgs(query, variables, allowedMutations);
+	let stdout: string;
+	try {
+		({ stdout } = await promisify(execFile)("gh", args, GH_OPTIONS));
+	} catch (error) {
+		// The error's own message repeats the command, body and all.
+		const { stderr } = error as { stderr?: string };
+		throw new Error(`gh command failed: ${stderr?.trim()}`);
+	}
+	return JSON.parse(stdout) as unknown;
+}
+
+function mutationArgs(
+	query: string,
+	variables: MutationVariables,
+	allowedMutations: Set<string>,
+) {
 	assertAllowedMutation(query, allowedMutations);
 	const variableFlags = Object.entries(variables).flatMap(([name, value]) => {
 		const key = Array.isArray(value) ? `${name}[]` : name;
@@ -69,10 +98,7 @@ export function runAllowedMutation(
 				`${key}=${item}`,
 			]);
 	});
-	return execGitHub(
-		["api", "graphql", "-f", `query=${query}`, ...variableFlags],
-		{ json: true },
-	);
+	return ["api", "graphql", "-f", `query=${query}`, ...variableFlags];
 }
 
 // Accept the query only if it is a mutation whose every `name(input:` call is

@@ -133,6 +133,47 @@ describe("pr-describe", () => {
 		});
 	});
 
+	describe("with several PRs", () => {
+		beforeEach(() => {
+			pullRequests = [3, 1, 2].map((number) =>
+				buildPullRequest({ number, headRefName: `feat/pr-${number}` }),
+			);
+		});
+
+		it("fetches the open PRs once and reads nothing else", () => {
+			const { calls } = runScript(pullRequests, []);
+
+			assert.deepEqual(
+				calls.map((call) => call.command),
+				["pr list", "api graphql", "api graphql", "api graphql"],
+			);
+		});
+
+		it("prints one line per PR in number order", () => {
+			const { stdout } = runScript(pullRequests, ["3", "1", "2"]);
+
+			assert.equal(stdout, "#1 updated\n#2 updated\n#3 updated\n");
+		});
+	});
+
+	describe("with --dry-run", () => {
+		beforeEach(() => {
+			pullRequests = [buildPullRequest({ number: 1 })];
+		});
+
+		it("doesn't write", () => {
+			const { writes } = runScript(pullRequests, ["--dry-run", "1"]);
+
+			assert.deepEqual(writes, []);
+		});
+
+		it("says what it would do", () => {
+			const { stdout } = runScript(pullRequests, ["--dry-run", "1"]);
+
+			assert.equal(stdout, "#1 would update\n");
+		});
+	});
+
 	it("skips a PR that isn't open", () => {
 		pullRequests = [buildPullRequest({ number: 1 })];
 
@@ -226,7 +267,7 @@ function runScript(pullRequests: PullRequest[], args: string[]) {
 		...args,
 	]);
 	const writes = result.calls
-		.filter((call) => call.query.trim().startsWith("mutation"))
+		.filter((call) => call.query?.trim().startsWith("mutation"))
 		.map(({ pullRequestId, body }) => ({ pullRequestId, body }));
 	return { ...result, writes };
 }

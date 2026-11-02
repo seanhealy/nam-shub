@@ -13,14 +13,12 @@
 
 import { fileURLToPath } from "node:url";
 import {
-	execGitHub,
 	fail,
 	parseCommandLine,
 	parsePositiveInteger,
 	repoOption,
 	resolveRepo,
-	runAllowedMutation,
-	splitRepo,
+	runAllowedMutationAsync,
 } from "./gh-lib.ts";
 import type { MutationVariables } from "./gh-lib.ts";
 import type { PullRequest } from "./pr-tree.ts";
@@ -33,47 +31,66 @@ import {
 
 const ALLOWED_MUTATIONS = new Set(["updatePullRequest"]);
 const ALLOWED_INPUT = "{ pullRequestId: $pullRequestId, body: $body }";
+// Writes in flight at once, under GitHub's secondary rate limit.
+const CONCURRENT_WRITES = 8;
 
 const USAGE = `Write each PR's Stack section into its description (gated behind approval).
 
-Usage: pr-describe [--repo owner/name] [<pr> ...]
+Usage: pr-describe [--repo owner/name] [--dry-run] [<pr> ...]
 
 The section is what pr-tree --description prints. It replaces the text between
 the pr-tree:start and pr-tree:end markers, or appends the section when they
 aren't there, leaving the rest of the body as it was. With no PR numbers it
-does every open PR. Prints one line per PR: updated, unchanged or skipped.`;
+does every open PR. Prints one line per PR, in number order: updated,
+unchanged, skipped or failed.
+
+--dry-run prints what it would do and writes nothing.`;
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const { values, positionals } = parseCommandLine(USAGE, {
 		repo: repoOption,
+		"dry-run": { type: "boolean" },
 	});
 	// Any number of PRs, so they don't fit readPositionals' fixed names.
 	const numbers = positionals.map((pr) => parsePositiveInteger(pr, "pr"));
-	const repo = resolveRepo(values.repo);
-	const pullRequests = readOpenPullRequests(repo);
-	const targets = numbers.length
-		? numbers
-		: pullRequests.map((pr) => pr.number);
-	targets.forEach((number) => {
-		console.log(`#${number} ${writeStackSection(repo, pullRequests, number)}`);
+	const dryRun = values["dry-run"] ?? false;
+	const pullRequests = readOpenPullRequests(resolveRepo(values.repo));
+	const targets = [
+		...new Set(numbers.length ? numbers : pullRequests.map((pr) => pr.number)),
+	].sort((left, right) => left - right);
+	const outcomes = await mapConcurrently(targets, CONCURRENT_WRITES, (number) =>
+		writeStackSection(pullRequests, number, dryRun),
+	);
+	targets.forEach((number, index) => {
+		console.log(`#${number} ${outcomes[index]}`);
 	});
+	if (outcomes.some((outcome) => outcome.startsWith("failed"))) {
+		process.exitCode = 1;
+	}
 }
 
-function writeStackSection(
-	repo: string,
+async function writeStackSection(
 	pullRequests: PullRequest[],
 	number: number,
+	dryRun: boolean,
 ) {
 	const section = stackSection(pullRequests, number);
-	if (section === undefined) {
+	const pullRequest = pullRequests.find((pr) => pr.number === number);
+	if (section === undefined || pullRequest === undefined) {
 		return "skipped: not an open PR with an emoji label";
 	}
-	const { id, body } = readBody(repo, number);
-	const next = withSection(body, section);
-	if (next === body) {
+	const next = withSection(pullRequest.body, section);
+	if (next === pullRequest.body) {
 		return "unchanged";
 	}
-	updateBody(id, next);
+	if (dryRun) {
+		return "would update";
+	}
+	try {
+		await updateBody(pullRequest.id, next);
+	} catch (error) {
+		return `failed: ${(error as Error).message}`;
+	}
 	return "updated";
 }
 
@@ -86,38 +103,30 @@ function withSection(body: string, section: string) {
 	return body.slice(0, start) + section + body.slice(end + STACK_END.length);
 }
 
-// ── GitHub calls ─────────────────────────────────────────────────────────────
-
-function readBody(repo: string, number: number) {
-	const [owner, name] = splitRepo(repo);
-	const query = `
-		query ($owner: String!, $name: String!, $number: Int!) {
-			repository(owner: $owner, name: $name) {
-				pullRequest(number: $number) { id body }
-			}
-		}`;
-	const response = execGitHub(
-		[
-			"api",
-			"graphql",
-			"-f",
-			`query=${query}`,
-			"-f",
-			`owner=${owner}`,
-			"-f",
-			`name=${name}`,
-			"-F",
-			`number=${number}`,
-		],
-		{ json: true },
-	) as {
-		data: { repository: { pullRequest: { id: string; body: string } } };
-	};
-	return response.data.repository.pullRequest;
+// Each item's task, at most `limit` running at once, results in item order.
+async function mapConcurrently<Item, Result>(
+	items: Item[],
+	limit: number,
+	task: (item: Item) => Promise<Result>,
+) {
+	const results: Result[] = [];
+	let next = 0;
+	async function work() {
+		while (next < items.length) {
+			const index = next++;
+			results[index] = await task(items[index]);
+		}
+	}
+	await Promise.all(
+		Array.from({ length: Math.min(limit, items.length) }, work),
+	);
+	return results;
 }
 
+// ── GitHub calls ─────────────────────────────────────────────────────────────
+
 function updateBody(pullRequestId: string, body: string) {
-	runMutation(
+	return runMutation(
 		`
 		mutation ($pullRequestId: ID!, $body: String!) {
 			updatePullRequest(input: { pullRequestId: $pullRequestId, body: $body }) {
@@ -138,5 +147,5 @@ export function runMutation(query: string, variables: MutationVariables) {
 	if (!inputs.length || inputs.some((input) => input !== ALLOWED_INPUT)) {
 		fail("refusing mutation that sets more than the body");
 	}
-	return runAllowedMutation(query, variables, ALLOWED_MUTATIONS);
+	return runAllowedMutationAsync(query, variables, ALLOWED_MUTATIONS);
 }

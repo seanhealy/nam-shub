@@ -25,6 +25,7 @@ type Mark = { glyph: string; color: string; name: string };
 
 // An open PR as the `pr list` call below returns it.
 export type PullRequest = {
+	id: string;
 	number: number;
 	title: string;
 	url: string;
@@ -34,6 +35,7 @@ export type PullRequest = {
 	labels: { name: string }[];
 	mergeable: Mergeable;
 	author: { login: string };
+	body: string;
 };
 
 type TreeRow = {
@@ -110,7 +112,7 @@ export function readOpenPullRequests(repo: string) {
 			"--limit",
 			"200",
 			"--json",
-			"number,title,url,baseRefName,headRefName,isDraft,labels,mergeable,author",
+			"id,number,title,url,baseRefName,headRefName,isDraft,labels,mergeable,author,body",
 		],
 		{ json: true },
 	) as PullRequest[];

@@ -59,15 +59,18 @@ into its description, and nothing else: its one write is `updatePullRequest`
 setting the body.
 
 ```bash
-pr-describe.ts            # every open PR
-pr-describe.ts 137 138    # just these
+pr-describe.ts                # every open PR
+pr-describe.ts 137 138        # just these
+pr-describe.ts --dry-run      # print what it would do, write nothing
 ```
 
 It replaces only the text between `<!-- pr-tree:start -->` and
 `<!-- pr-tree:end -->`, or appends the section when the markers aren't there,
 so the rest of the body stays byte for byte. It prints one line per PR:
-updated, unchanged (the body already matches, so nothing is written) or
-skipped, for a PR that isn't open with an emoji label.
+updated, unchanged (the body already matches, so nothing is written),
+skipped, for a PR that isn't open with an emoji label, or failed, with gh's
+error. It reads every open PR once and sends up to 8 writes at a time, under
+GitHub's secondary rate limit; the lines still come out in PR number order.
 
 ## pr-status
 
