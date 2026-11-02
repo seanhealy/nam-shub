@@ -42,7 +42,7 @@ codemod can't regenerate.
   branch.
 
 The PR scripts (`pr-state`, `pr-tree`, `pr-status`, `pr-comment`) run from the
-repo's checkout as `node ${CLAUDE_SKILL_DIR}/scripts/<name>.mjs`; see
+repo's checkout as `node ${CLAUDE_SKILL_DIR}/scripts/<name>.ts`; see
 [SCRIPTS.md](SCRIPTS.md). For walking The Operator through pages in the
 browser, see [WALKTHROUGH.md](WALKTHROUGH.md).
 

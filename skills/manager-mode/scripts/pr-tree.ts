@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// pr-tree.mjs: Print open PRs as a tree nested by base branch, or one PR's
+// pr-tree.ts: Print open PRs as a tree nested by base branch, or one PR's
 // stack as a section for its description. Read-only.
 //
 // A label counts when its name starts with an emoji, and each PR shows only
@@ -14,10 +14,40 @@ import {
 	readPositionals,
 	repoOption,
 	resolveRepo,
-} from "./gh-lib.mjs";
-import { LABELS } from "./labels.mjs";
+} from "./gh-lib.ts";
+import { LABELS } from "./labels.ts";
 
-const MARKS = {
+// GitHub's mergeable state for a PR.
+type Mergeable = "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
+
+// A mergeability mark: its glyph, the ANSI colour code it prints in, and its
+// name in the legend.
+type Mark = { glyph: string; color: string; name: string };
+
+// An open PR as the `pr list` call below returns it.
+type PullRequest = {
+	number: number;
+	title: string;
+	url: string;
+	baseRefName: string;
+	headRefName: string;
+	isDraft: boolean;
+	labels: { name: string }[];
+	mergeable: Mergeable;
+	author: { login: string };
+};
+
+// One PR's line in the tree.
+type Row = {
+	pr: PullRequest;
+	lead: string;
+	name: string;
+	padding: string;
+	mark: Mark;
+	emojis: string;
+};
+
+const MARKS: Record<Mergeable, Mark> = {
 	MERGEABLE: { glyph: "●", color: "32", name: "mergeable" },
 	CONFLICTING: { glyph: "✕", color: "31", name: "conflicting" },
 	UNKNOWN: { glyph: "⭘", color: "2", name: "unknown" },
@@ -56,10 +86,11 @@ const described =
 		: parsePositiveInteger(values.description, "description");
 const repo = resolveRepo(values.repo);
 
-const defaultBranch = execGitHub(
+const repository = execGitHub(
 	["repo", "view", repo, "--json", "defaultBranchRef"],
 	{ json: true },
-).defaultBranchRef.name;
+) as { defaultBranchRef: { name: string } };
+const defaultBranch = repository.defaultBranchRef.name;
 const all = execGitHub(
 	[
 		"pr",
@@ -74,7 +105,7 @@ const all = execGitHub(
 		"number,title,url,baseRefName,headRefName,isDraft,labels,mergeable,author",
 	],
 	{ json: true },
-);
+) as PullRequest[];
 const ours = all.filter(isTracked);
 const untracked = all.filter((pr) => !isTracked(pr));
 const byHead = new Map(ours.map((pr) => [pr.headRefName, pr]));
@@ -115,7 +146,7 @@ function printTree() {
 
 // The PR's stack: the chain of PRs it sits on, from the root branch down, and
 // every PR stacked on it, forks included.
-function printDescription(number) {
+function printDescription(number: number) {
 	const pullRequest = ours.find((pr) => pr.number === number);
 	if (!pullRequest) {
 		fail(`#${number} is not an open PR with an emoji label in ${repo}`);
@@ -154,7 +185,11 @@ function printDescription(number) {
 
 // Every PR under the branch that `include` accepts, depth first, with the
 // connectors that draw it into the tree.
-function treeRows(branch, prefix, include) {
+function treeRows(
+	branch: string,
+	prefix: string,
+	include: (pr: PullRequest) => boolean,
+): Row[] {
 	const siblings = ours.filter(
 		(pr) => pr.baseRefName === branch && include(pr),
 	);
@@ -170,7 +205,7 @@ function treeRows(branch, prefix, include) {
 			...emojiLabels.filter(isBranchLabel),
 			...(pr.isDraft ? [DRAFT_LABEL] : []),
 		];
-		const row = {
+		const row: Row = {
 			pr,
 			lead,
 			name,
@@ -186,7 +221,7 @@ function treeRows(branch, prefix, include) {
 }
 
 // One line for the marks, drawn by `drawMark`, and one for the labels.
-function legend(drawMark) {
+function legend(drawMark: (mark: Mark) => string) {
 	return [
 		Object.values(MARKS)
 			.map((mark) => `${drawMark(mark)} ${mark.name}`)
@@ -195,40 +230,40 @@ function legend(drawMark) {
 	];
 }
 
-function ancestorsOf(pr) {
+function ancestorsOf(pr: PullRequest): PullRequest[] {
 	const parent = byHead.get(pr.baseRefName);
 	return parent ? [...ancestorsOf(parent), parent] : [];
 }
 
-function descendantsOf(pr) {
+function descendantsOf(pr: PullRequest): PullRequest[] {
 	return ours
 		.filter((child) => child.baseRefName === pr.headRefName)
 		.flatMap((child) => [child, ...descendantsOf(child)]);
 }
 
-function paint(mark) {
+function paint(mark: Mark) {
 	return color ? `\x1b[${mark.color}m${mark.glyph}\x1b[0m` : mark.glyph;
 }
 
-function escapeHtml(text) {
+function escapeHtml(text: string) {
 	return text
 		.replaceAll("&", "&amp;")
 		.replaceAll("<", "&lt;")
 		.replaceAll(">", "&gt;");
 }
 
-function emojiOf(label) {
+function emojiOf(label: string) {
 	return label.split(" ", 1)[0];
 }
 
-function isTracked(pr) {
+function isTracked(pr: PullRequest) {
 	return pr.labels.some((label) => isEmojiLabel(label.name));
 }
 
-function isEmojiLabel(name) {
+function isEmojiLabel(name: string) {
 	return /^\p{Extended_Pictographic}/u.test(name);
 }
 
-function isBranchLabel(name) {
+function isBranchLabel(name: string) {
 	return /^\P{L}+ (feature|stacked)$/u.test(name);
 }
