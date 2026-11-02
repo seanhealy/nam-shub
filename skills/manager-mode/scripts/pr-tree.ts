@@ -35,8 +35,7 @@ type PullRequest = {
 	author: { login: string };
 };
 
-// One PR's line in the tree.
-type Row = {
+type TreeRow = {
 	pr: PullRequest;
 	lead: string;
 	name: string;
@@ -187,7 +186,7 @@ function treeRows(
 	branch: string,
 	prefix: string,
 	include: (pr: PullRequest) => boolean,
-): Row[] {
+): TreeRow[] {
 	const siblings = ours.filter(
 		(pr) => pr.baseRefName === branch && include(pr),
 	);
@@ -203,7 +202,7 @@ function treeRows(
 			...emojiLabels.filter(isBranchLabel),
 			...(pr.isDraft ? [DRAFT_LABEL] : []),
 		];
-		const row: Row = {
+		const row: TreeRow = {
 			pr,
 			lead,
 			name,
