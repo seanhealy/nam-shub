@@ -32,8 +32,7 @@ import {
 } from "./pr-tree.ts";
 
 const ALLOWED_MUTATIONS = new Set(["updatePullRequest"]);
-// The only input fields the write may set.
-const ALLOWED_INPUT_FIELDS = ["pullRequestId", "body"];
+const ALLOWED_INPUT = "{ pullRequestId: $pullRequestId, body: $body }";
 
 const USAGE = `Write each PR's Stack section into its description (gated behind approval).
 
@@ -56,12 +55,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 		? numbers
 		: pullRequests.map((pr) => pr.number);
 	targets.forEach((number) => {
-		console.log(`#${number} ${describe(repo, pullRequests, number)}`);
+		console.log(`#${number} ${writeStackSection(repo, pullRequests, number)}`);
 	});
 }
 
-// Writes one PR's section and says what happened to it.
-function describe(repo: string, pullRequests: PullRequest[], number: number) {
+function writeStackSection(
+	repo: string,
+	pullRequests: PullRequest[],
+	number: number,
+) {
 	const section = stackSection(pullRequests, number);
 	if (section === undefined) {
 		return "skipped: not an open PR with an emoji label";
@@ -76,9 +78,9 @@ function describe(repo: string, pullRequests: PullRequest[], number: number) {
 }
 
 function withSection(body: string, section: string) {
-	const start = body.indexOf(STACK_START);
-	const end = body.indexOf(STACK_END, start);
-	if (start === -1 || end === -1) {
+	const end = body.indexOf(STACK_END);
+	const start = body.lastIndexOf(STACK_START, end);
+	if (end === -1 || start === -1) {
 		return body === "" ? section : `${body}\n\n${section}`;
 	}
 	return body.slice(0, start) + section + body.slice(end + STACK_END.length);
@@ -86,8 +88,6 @@ function withSection(body: string, section: string) {
 
 // ── GitHub calls ─────────────────────────────────────────────────────────────
 
-// A read, so it goes straight to the shared runner (not the mutation
-// allowlist).
 function readBody(repo: string, number: number) {
 	const [owner, name] = splitRepo(repo);
 	const query = `
@@ -128,18 +128,14 @@ function updateBody(pullRequestId: string, body: string) {
 	);
 }
 
-// The allowlist checks the mutation's name; this also checks it sets only the
-// body, so an edit can't widen it to the title, base or state.
+// The allowlist checks the mutation's name; this also checks that every input
+// it sends is the body and nothing else, so an edit can't widen it to the
+// title, base or state.
 export function runMutation(query: string, variables: MutationVariables) {
-	const input = query.match(/updatePullRequest\s*\(\s*input:\s*\{([^}]*)\}/);
-	const fields = [...(input?.[1] ?? "").matchAll(/(\w+)\s*:/g)].map(
-		(field) => field[1],
+	const inputs = [...query.matchAll(/\binput\s*:\s*([^)]*)/g)].map((match) =>
+		match[1].replace(/\s+/g, " ").trim(),
 	);
-	if (
-		input &&
-		(fields.length !== ALLOWED_INPUT_FIELDS.length ||
-			fields.some((field) => !ALLOWED_INPUT_FIELDS.includes(field)))
-	) {
+	if (!inputs.length || inputs.some((input) => input !== ALLOWED_INPUT)) {
 		fail("refusing mutation that sets more than the body");
 	}
 	return runAllowedMutation(query, variables, ALLOWED_MUTATIONS);
