@@ -82,7 +82,7 @@ function assertAllowedMutation(query: string, allowedMutations: Set<string>) {
 	if (!/^\s*mutation\b/.test(query)) {
 		fail("refusing gh call that is not a mutation");
 	}
-	const calls = [...query.matchAll(/(\w+)\s*\(\s*input:/g)].map(
+	const calls = [...query.matchAll(/(\w+)\s*\(\s*input\s*:/g)].map(
 		(match) => match[1],
 	);
 	if (!calls.length || calls.some((name) => !allowedMutations.has(name))) {
