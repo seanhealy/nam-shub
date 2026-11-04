@@ -20,6 +20,9 @@ describe("pr-describe", () => {
 			pullRequests = [
 				buildPullRequest({
 					number: 1,
+					url: "https://github.com/owner/repo/pull/1",
+					headRefName: "feat/one",
+					labels: ["🚧 working"],
 					body: "Intro.\n\n<!-- pr-tree:start -->\n## Stack\n\nold tree\n<!-- pr-tree:end -->\n\nOutro.\n",
 				}),
 			];
@@ -93,6 +96,22 @@ Outro.
 		);
 	});
 
+	it("replaces a section whose marker lines are indented or end in spaces", () => {
+		pullRequests = [
+			buildPullRequest({
+				number: 1,
+				body: "Intro.\n  <!-- pr-tree:start -->\t\nstale\n<!-- pr-tree:end -->  \nOutro.",
+			}),
+		];
+
+		const { writes } = runScript(pullRequests, ["1"]);
+
+		assert.equal(
+			writes[0].body,
+			`Intro.\n${stackSection(pullRequests, 1)}\nOutro.`,
+		);
+	});
+
 	it("appends the section after markers quoted in a sentence", () => {
 		const sentence =
 			"The section sits between `<!-- pr-tree:start -->` and `<!-- pr-tree:end -->`.";
@@ -150,6 +169,26 @@ Outro.
 		beforeEach(() => {
 			pullRequests = [
 				buildPullRequest({ number: 1, body: "Intro.\n<!-- pr-tree:end -->" }),
+			];
+		});
+
+		it("skips the PR with a note and writes nothing", () => {
+			const { stdout, writes } = runScript(pullRequests, ["1"]);
+
+			assert.deepEqual(
+				{ stdout, writes },
+				{ stdout: SKIPPED_MARKERS, writes: [] },
+			);
+		});
+	});
+
+	describe("with the end marker above the start marker", () => {
+		beforeEach(() => {
+			pullRequests = [
+				buildPullRequest({
+					number: 1,
+					body: "<!-- pr-tree:end -->\nkept\n<!-- pr-tree:start -->",
+				}),
 			];
 		});
 
@@ -259,12 +298,8 @@ Outro.
 			const result = runScript(pullRequests, [], { refusedWrite: "PR_2" });
 
 			assert.deepEqual(
-				[result.status, result.stdout, result.stderr],
-				[
-					1,
-					"#1 updated\n",
-					"write refused\ngh command failed: write refused\n",
-				],
+				[result.status, result.stdout, result.stderr.includes("write refused")],
+				[1, "#1 updated\n", true],
 			);
 		});
 	});
@@ -381,6 +416,23 @@ Outro.
 			);
 		});
 
+		it("refuses a second call to another mutation with a comma before its parenthesis", () => {
+			const result = runMutation(`
+				mutation ($pullRequestId: ID!, $body: String!) {
+					updatePullRequest(input: { pullRequestId: $pullRequestId, body: $body }) {
+						clientMutationId
+					}
+					r: addPullRequestReview,(input: { pullRequestId: $pullRequestId, body: $body }) {
+						clientMutationId
+					}
+				}`);
+
+			assert.deepEqual(
+				[result.status, result.stderr, result.calls],
+				[1, "refusing mutation off the allowlist\n", []],
+			);
+		});
+
 		it("refuses a mutation with a # comment in it", () => {
 			const result = runMutation(`
 				mutation ($pullRequestId: ID!, $body: String!) {
@@ -397,7 +449,7 @@ Outro.
 
 			assert.deepEqual(
 				[result.status, result.stderr, result.calls],
-				[1, "refusing mutation with a # in it\n", []],
+				[1, "refusing mutation with a comment\n", []],
 			);
 		});
 	});

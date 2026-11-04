@@ -35,8 +35,8 @@ import {
 const ALLOWED_MUTATIONS = new Set(["updatePullRequest"]);
 // GraphQL reads commas as whitespace, so the comparison drops them too.
 const ALLOWED_INPUT = "{ pullRequestId: $pullRequestId body: $body }";
-const START_LINE = new RegExp(`^${STACK_START}$`, "gm");
-const END_LINE = new RegExp(`^${STACK_END}$`, "gm");
+const START_LINE = new RegExp(`^[ \\t]*${STACK_START}[ \\t]*$`, "gm");
+const END_LINE = new RegExp(`^[ \\t]*${STACK_END}[ \\t]*$`, "gm");
 
 const USAGE = `Write each PR's Stack section into its description (gated behind approval).
 
@@ -116,7 +116,7 @@ function withSection(body: string, section: string) {
 	return (
 		body.slice(0, starts[0].index) +
 		section +
-		body.slice(ends[0].index + STACK_END.length)
+		body.slice(ends[0].index + ends[0][0].length)
 	);
 }
 
@@ -164,12 +164,8 @@ function updateBody(pullRequestId: string, body: string) {
 
 // The allowlist checks the mutation's name; this also checks that every input
 // it sends is the body and nothing else, so an edit can't widen it to the
-// title, base or state. GraphQL skips a `#` comment like whitespace, which
-// would hide an input from the pattern, so the query may hold no `#` at all.
+// title, base or state.
 export function runMutation(query: string, variables: MutationVariables) {
-	if (query.includes("#")) {
-		fail("refusing mutation with a # in it");
-	}
 	const inputs = [...query.matchAll(/\binput[\s,]*:[\s,]*([^)]*)/g)].map(
 		(match) => match[1].replace(/[\s,]+/g, " ").trim(),
 	);
