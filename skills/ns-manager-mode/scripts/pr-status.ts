@@ -368,9 +368,7 @@ function composeSections(
 	prNumber: number,
 	includeNames: string[],
 ): Report {
-	const sections = includeNames.map(
-		(name) => [name, SECTIONS[name]] as const,
-	);
+	const sections = includeNames.map((name) => [name, SECTIONS[name]] as const);
 
 	const prFields = new Set(
 		sections.flatMap(([, section]) => section.prFields ?? []),

@@ -87,8 +87,6 @@ type PullRequestNode = {
 	labels: { nodes: Label[] };
 };
 
-// The PR with its labels flattened, and its repo's default branch and labels
-// alongside.
 type PullRequest = Omit<PullRequestNode, "labels"> & {
 	labels: Label[];
 	defaultBranch: string;

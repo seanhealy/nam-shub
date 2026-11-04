@@ -17,7 +17,10 @@ Set up nam-shub: read `skills/ns-sync/SKILL.md` in `seanhealy/nam-shub` and foll
 After that, ask for the `ns-sync` skill in the repo to update it. A repo synced
 before the `ns-` prefix runs the skill's first-time command once.
 
-`node --test` runs the tests.
+`node --test` runs the tests. Each test sits next to the code it tests. Test
+files and shared test helpers are any file with `.test.` in its name, with
+helpers named `*.test.support.ts`, and the sync leaves them out of the skills
+it copies.
 
 ## Extending a Shared Skill
 
