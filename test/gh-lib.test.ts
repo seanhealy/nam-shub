@@ -170,17 +170,35 @@ describe("runAllowedMutation()", () => {
 		});
 	});
 
-	it("refuses a second call hidden in a fragment", () => {
+	it("refuses a second call with a comma before the parenthesis", () => {
 		const result = runWithFakeGitHub(
 			`
 			mutation ($subjectId: ID!, $body: String!) {
 				addComment(input: { subjectId: $subjectId, body: $body }) {
 					clientMutationId
 				}
-				...Close
-			}
-			fragment Close on Mutation {
-				closePullRequest(,input: { pullRequestId: $subjectId }) {
+				closePullRequest,(input: { pullRequestId: $subjectId }) {
+					clientMutationId
+				}
+			}`,
+			allowedMutations,
+		);
+
+		assert.deepEqual(result, {
+			status: 1,
+			stderr: "refusing mutation off the allowlist\n",
+			called: false,
+		});
+	});
+
+	it("refuses a second call with a comma before the colon", () => {
+		const result = runWithFakeGitHub(
+			`
+			mutation ($subjectId: ID!, $body: String!) {
+				addComment(input: { subjectId: $subjectId, body: $body }) {
+					clientMutationId
+				}
+				closePullRequest(input,: { pullRequestId: $subjectId }) {
 					clientMutationId
 				}
 			}`,
