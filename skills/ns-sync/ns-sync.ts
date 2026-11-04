@@ -10,7 +10,7 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const namShubRepository = "https://github.com/seanhealy/nam-shub";
@@ -25,6 +25,8 @@ const unprefixedSkills = {
 	"manager-mode": "ns-manager-mode",
 	"sync-nam-shub": "ns-sync",
 };
+// Tests run here, not in the repos the skills are copied into.
+const testMarker = ".test.";
 
 export function nsSync(repository: string, source = namShubRepository) {
 	const checkout = mkdtempSync(join(tmpdir(), "nam-shub-"));
@@ -73,7 +75,10 @@ function copySkills(from: string, to: string) {
 	});
 	const names = readdirSync(from);
 	names.forEach((name) => {
-		cpSync(join(from, name), join(to, name), { recursive: true });
+		cpSync(join(from, name), join(to, name), {
+			recursive: true,
+			filter: (source) => !basename(source).includes(testMarker),
+		});
 	});
 	return names;
 }
