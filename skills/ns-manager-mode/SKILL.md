@@ -1,5 +1,5 @@
 ---
-name: manager-mode
+name: ns-manager-mode
 description: Running a session as the manager of background agents. Use when The Operator turns manager mode on, or when briefing, tracking or cleaning up after subagents.
 ---
 
@@ -80,4 +80,4 @@ keeping the scripts' rules.
 - **Isolated agents** can only run git in their own worktree, and one that stops
   without changes loses it, so relaunch rather than resume.
 
-@.claude/extensions/skills/manager-mode/BRIEFS.md
+@.claude/extensions/skills/ns-manager-mode/BRIEFS.md
