@@ -7,7 +7,7 @@ import { describe, it } from "node:test";
 
 const GH_LIB = join(
 	import.meta.dirname,
-	"../skills/manager-mode/scripts/gh-lib.ts",
+	"../skills/ns-manager-mode/scripts/gh-lib.ts",
 );
 
 describe("runAllowedMutation()", () => {

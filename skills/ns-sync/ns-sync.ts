@@ -15,6 +15,15 @@ import { fileURLToPath } from "node:url";
 const namShubRepository = "https://github.com/seanhealy/nam-shub";
 const blockPattern =
 	/<!-- BEGIN:nam-shub@(\w+) -->[\s\S]*?<!-- END:nam-shub -->/;
+const skillPrefix = "ns-";
+// The shared skills' names before the prefix. Remove once coverlet, charles
+// and rohl are migrated.
+const unprefixedSkills = [
+	"pr-review",
+	"testing",
+	"manager-mode",
+	"sync-nam-shub",
+];
 
 export function syncNamShub(repository: string, source = namShubRepository) {
 	const checkout = mkdtempSync(join(tmpdir(), "nam-shub-"));
@@ -52,9 +61,14 @@ function writeBlock(repository: string, core: string, commit: string) {
 }
 
 function copySkills(from: string, to: string) {
+	const synced = existsSync(to)
+		? readdirSync(to).filter((name) => name.startsWith(skillPrefix))
+		: [];
+	[...synced, ...unprefixedSkills].forEach((name) => {
+		rmSync(join(to, name), { recursive: true, force: true });
+	});
 	const names = readdirSync(from);
 	names.forEach((name) => {
-		rmSync(join(to, name), { recursive: true, force: true });
 		cpSync(join(from, name), join(to, name), { recursive: true });
 	});
 	return names;

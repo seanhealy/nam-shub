@@ -12,7 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, it } from "node:test";
-import { syncNamShub } from "../skills/sync-nam-shub/sync-nam-shub.ts";
+import { syncNamShub } from "../skills/ns-sync/ns-sync.ts";
 
 describe("syncNamShub()", () => {
 	let repository: string;
@@ -25,7 +25,7 @@ describe("syncNamShub()", () => {
 	beforeEach(() => {
 		source = makeSource({
 			core: "Write less code.",
-			skills: { "pr-review": { "SKILL.md": "New review steps." } },
+			skills: { "ns-pr-review": { "SKILL.md": "New review steps." } },
 		});
 	});
 
@@ -95,7 +95,7 @@ describe("syncNamShub()", () => {
 			beforeEach(() => {
 				source = makeSource({
 					core: "Prices look like $5 and $& stays.",
-					skills: { "pr-review": { "SKILL.md": "New review steps." } },
+					skills: { "ns-pr-review": { "SKILL.md": "New review steps." } },
 				});
 			});
 
@@ -140,8 +140,8 @@ describe("syncNamShub()", () => {
 
 	describe("with skills already in the repo", () => {
 		beforeEach(() => {
-			write(repository, ".claude/skills/pr-review/SKILL.md", "Old review steps.");
-			write(repository, ".claude/skills/pr-review/removed.md", "Gone upstream.");
+			write(repository, ".claude/skills/ns-pr-review/SKILL.md", "Old review steps.");
+			write(repository, ".claude/skills/ns-pr-review/removed.md", "Gone upstream.");
 		});
 
 		beforeEach(() => {
@@ -152,11 +152,11 @@ describe("syncNamShub()", () => {
 			syncNamShub(repository, source);
 
 			assert.equal(
-				read(repository, ".claude/skills/pr-review/SKILL.md"),
+				read(repository, ".claude/skills/ns-pr-review/SKILL.md"),
 				"New review steps.",
 			);
 			assert.equal(
-				existsSync(join(repository, ".claude/skills/pr-review/removed.md")),
+				existsSync(join(repository, ".claude/skills/ns-pr-review/removed.md")),
 				false,
 			);
 		});
@@ -173,7 +173,37 @@ describe("syncNamShub()", () => {
 		it("reports the shared skills it wrote", () => {
 			const { skills } = syncNamShub(repository, source);
 
-			assert.deepEqual(skills, ["pr-review"]);
+			assert.deepEqual(skills, ["ns-pr-review"]);
+		});
+
+		describe("with a shared skill dropped upstream", () => {
+			beforeEach(() => {
+				write(repository, ".claude/skills/ns-dropped/SKILL.md", "Retired.");
+			});
+
+			it("removes it", () => {
+				syncNamShub(repository, source);
+
+				assert.equal(
+					existsSync(join(repository, ".claude/skills/ns-dropped")),
+					false,
+				);
+			});
+		});
+
+		describe("with a shared skill from before the ns- prefix", () => {
+			beforeEach(() => {
+				write(repository, ".claude/skills/pr-review/SKILL.md", "Old name.");
+			});
+
+			it("removes it", () => {
+				syncNamShub(repository, source);
+
+				assert.equal(
+					existsSync(join(repository, ".claude/skills/pr-review")),
+					false,
+				);
+			});
 		});
 	});
 
