@@ -1,15 +1,21 @@
 # nam-shub
 
 The shared rules and skills for The Operator's repos. `core.md` is synced into
-each repo's `AGENTS.md`, and the skills in `skills/` into its `.claude/skills/`.
-Edit them here, never in the synced copies.
+each repo's `AGENTS.md`, and the skills in `skills/` into its `.claude/skills/`,
+where the sync owns every `ns-*` folder. Edit them here, never in the synced
+copies.
+
+`ns` is a deliberately short name, against the full-words rule, because skills
+are typed by hand often.
 
 To set up a repo, ask the agent working in it:
 
-> Set up nam-shub: read `skills/sync-nam-shub/SKILL.md` in
-> `seanhealy/nam-shub` and follow it.
+```
+Set up nam-shub: read `skills/ns-sync/SKILL.md` in `seanhealy/nam-shub` and follow it.
+```
 
-After that, ask for the `sync-nam-shub` skill in the repo to update it.
+After that, ask for the `ns-sync` skill in the repo to update it. A repo synced
+before the `ns-` prefix runs the skill's first-time command once.
 
 `node --test` runs the tests. Each test sits next to the code it tests, and a
 helper shared by tests ends in `.test-support.ts`. The sync leaves `*.test.ts`
@@ -18,8 +24,9 @@ and `*.test-support.ts` files out of the skills it copies.
 ## Extending a Shared Skill
 
 A repo adds to a shared skill's file in `.claude/extensions/`, at the same path
-the file has here: additions to `skills/<name>/SKILL.md` go in
-`.claude/extensions/skills/<name>/SKILL.md`. The sync never touches
+the file has here, `ns-` prefix and all: additions to
+`skills/ns-pr-review/SKILL.md` go in
+`.claude/extensions/skills/ns-pr-review/SKILL.md`. The sync never touches
 `.claude/extensions/`, and an extension loads only with the skill it extends.
 
 The skill's `SKILL.md` ends with an `@` line for each of its files that takes
