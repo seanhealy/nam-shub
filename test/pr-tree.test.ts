@@ -7,7 +7,7 @@ import { beforeEach, describe, it } from "node:test";
 
 const SCRIPT = join(
 	import.meta.dirname,
-	"../skills/manager-mode/scripts/pr-tree.mjs",
+	"../skills/manager-mode/scripts/pr-tree.ts",
 );
 
 const LEGEND = [
