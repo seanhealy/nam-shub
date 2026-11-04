@@ -267,8 +267,9 @@ describe("nsSync()", () => {
 						"scripts/check.ts": "Check the branch.",
 						"scripts/contest.ts": "Run the contest.",
 						"scripts/test.ts": "Run the checks.",
+						"scripts/latest.test-data/sample.ts": "Sample the latest run.",
 						"scripts/check.test.ts": "Test the check.",
-						"scripts/stand-in.test-support.ts": "Fake the check.",
+						"scripts/stand-in.test.support.ts": "Fake the check.",
 					},
 				},
 			});
@@ -286,6 +287,8 @@ describe("nsSync()", () => {
 					"scripts",
 					"scripts/check.ts",
 					"scripts/contest.ts",
+					"scripts/latest.test-data",
+					"scripts/latest.test-data/sample.ts",
 					"scripts/test.ts",
 				],
 			);
