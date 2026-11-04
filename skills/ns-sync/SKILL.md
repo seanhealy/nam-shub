@@ -15,9 +15,10 @@ prefix, stay as they are. Setup is the same run on a repo that has nothing yet.
    - set up already: `node .claude/skills/ns-sync/ns-sync.ts`
    - first time: `git clone --depth 1 https://github.com/seanhealy/nam-shub /tmp/nam-shub`,
      then `node /tmp/nam-shub/skills/ns-sync/ns-sync.ts`
-2. Check the diff touches only the nam-shub block and `ns-*` skill folders,
-   plus the old unprefixed copies of the shared skills it removes. Anything
-   else means the script misbehaved: stop and tell The Operator.
+2. Check the diff touches only the nam-shub block and `ns-*` skill folders.
+   An update also removes the shared skills' old unprefixed folders and moves
+   their extensions to the new names; a first setup leaves them alone.
+   Anything else means the script misbehaved: stop and tell The Operator.
 3. Open a pull request titled with the script's first line. Put its changes
    link in the description when it printed one.
 4. On a first setup, list the repo's own rules that now repeat the core under
