@@ -75,12 +75,17 @@ export function runAllowedMutation(
 
 // Accept the query only if it is a mutation whose every `name(input:` call is
 // on the allowlist. A backstop: the queries are hardcoded in each script, so
-// this guards against one being edited to call something destructive.
+// this guards against one being edited to call something destructive. GraphQL
+// skips commas and `#` comments like whitespace; none of the hardcoded queries
+// has a comment, so one is refused rather than read around.
 function assertAllowedMutation(query: string, allowedMutations: Set<string>) {
 	if (!/^\s*mutation\b/.test(query)) {
 		fail("refusing gh call that is not a mutation");
 	}
-	const calls = [...query.matchAll(/(\w+)\s*\(\s*input\s*:/g)].map(
+	if (query.includes("#")) {
+		fail("refusing mutation with a comment");
+	}
+	const calls = [...query.matchAll(/(\w+)[\s,]*\([\s,]*input[\s,]*:/g)].map(
 		(match) => match[1],
 	);
 	if (!calls.length || calls.some((name) => !allowedMutations.has(name))) {

@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdtempSync, writeFileSync } from "node:fs";
+import {
+	chmodSync,
+	existsSync,
+	mkdtempSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -8,13 +14,18 @@ import { describe, it } from "node:test";
 const GH_LIB = join(import.meta.dirname, "gh-lib.ts");
 
 describe("runAllowedMutation()", () => {
-	const allowedMutations = ["addComment"];
+	const allowedMutations = ["addComment", "addPullRequestReviewThreadReply"];
 
 	it("sends a mutation whose every call is on the allowlist", () => {
 		const result = runWithFakeGitHub(
 			`
-			mutation ($subjectId: ID!, $body: String!) {
+			mutation ($subjectId: ID!, $threadId: ID!, $body: String!) {
 				addComment(input: { subjectId: $subjectId, body: $body }) {
+					clientMutationId
+				}
+				addPullRequestReviewThreadReply(
+					input: { pullRequestReviewThreadId: $threadId, body: $body }
+				) {
 					clientMutationId
 				}
 			}`,
@@ -91,6 +102,112 @@ describe("runAllowedMutation()", () => {
 			called: false,
 		});
 	});
+
+	it("refuses a second call with a comma before the input", () => {
+		const result = runWithFakeGitHub(
+			`
+			mutation ($subjectId: ID!, $body: String!) {
+				addComment(input: { subjectId: $subjectId, body: $body }) {
+					clientMutationId
+				}
+				closePullRequest(,input: { pullRequestId: $subjectId }) {
+					clientMutationId
+				}
+			}`,
+			allowedMutations,
+		);
+
+		assert.deepEqual(result, {
+			status: 1,
+			stderr: "refusing mutation off the allowlist\n",
+			called: false,
+		});
+	});
+
+	it("refuses a second call with a spaced comma before the input", () => {
+		const result = runWithFakeGitHub(
+			`
+			mutation ($subjectId: ID!, $body: String!) {
+				addComment(input: { subjectId: $subjectId, body: $body }) {
+					clientMutationId
+				}
+				closePullRequest( , input:{ pullRequestId: $subjectId }) {
+					clientMutationId
+				}
+			}`,
+			allowedMutations,
+		);
+
+		assert.deepEqual(result, {
+			status: 1,
+			stderr: "refusing mutation off the allowlist\n",
+			called: false,
+		});
+	});
+
+	it("refuses a mutation with a comment", () => {
+		const result = runWithFakeGitHub(
+			`
+			mutation ($subjectId: ID!, $body: String!) {
+				addComment(input: { subjectId: $subjectId, body: $body }) {
+					clientMutationId
+				}
+				closePullRequest( #x
+					input: { pullRequestId: $subjectId }) {
+					clientMutationId
+				}
+			}`,
+			allowedMutations,
+		);
+
+		assert.deepEqual(result, {
+			status: 1,
+			stderr: "refusing mutation with a comment\n",
+			called: false,
+		});
+	});
+
+	it("refuses a second call with a comma before the parenthesis", () => {
+		const result = runWithFakeGitHub(
+			`
+			mutation ($subjectId: ID!, $body: String!) {
+				addComment(input: { subjectId: $subjectId, body: $body }) {
+					clientMutationId
+				}
+				closePullRequest,(input: { pullRequestId: $subjectId }) {
+					clientMutationId
+				}
+			}`,
+			allowedMutations,
+		);
+
+		assert.deepEqual(result, {
+			status: 1,
+			stderr: "refusing mutation off the allowlist\n",
+			called: false,
+		});
+	});
+
+	it("refuses a second call with a comma before the colon", () => {
+		const result = runWithFakeGitHub(
+			`
+			mutation ($subjectId: ID!, $body: String!) {
+				addComment(input: { subjectId: $subjectId, body: $body }) {
+					clientMutationId
+				}
+				closePullRequest(input,: { pullRequestId: $subjectId }) {
+					clientMutationId
+				}
+			}`,
+			allowedMutations,
+		);
+
+		assert.deepEqual(result, {
+			status: 1,
+			stderr: "refusing mutation off the allowlist\n",
+			called: false,
+		});
+	});
 });
 
 function runWithFakeGitHub(query: string, allowedMutations: string[]) {
@@ -119,5 +236,7 @@ function runWithFakeGitHub(query: string, allowedMutations: string[]) {
 			env: { ...process.env, PATH: `${bin}:${process.env.PATH}` },
 		},
 	);
-	return { status, stderr, called: existsSync(join(bin, "called")) };
+	const called = existsSync(join(bin, "called"));
+	rmSync(bin, { recursive: true });
+	return { status, stderr, called };
 }
