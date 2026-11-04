@@ -11,8 +11,9 @@ To set up a repo, ask the agent working in it:
 
 After that, ask for the `sync-nam-shub` skill in the repo to update it.
 
-`node --test` runs the tests. Each test sits next to the code it tests, and the
-sync leaves `*.test.ts` files out of the skills it copies.
+`node --test` runs the tests. Each test sits next to the code it tests, and a
+helper shared by tests ends in `.test-support.ts`. The sync leaves `*.test.ts`
+and `*.test-support.ts` files out of the skills it copies.
 
 ## Extending a Shared Skill
 

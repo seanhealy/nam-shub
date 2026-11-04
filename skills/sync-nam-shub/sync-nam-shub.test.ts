@@ -178,7 +178,7 @@ describe("syncNamShub()", () => {
 		});
 	});
 
-	describe("with a test in a shared skill", () => {
+	describe("with tests in a shared skill", () => {
 		beforeEach(() => {
 			source = makeSource({
 				core: "Write less code.",
@@ -187,12 +187,13 @@ describe("syncNamShub()", () => {
 						"SKILL.md": "New review steps.",
 						"scripts/check.ts": "Check the branch.",
 						"scripts/check.test.ts": "Test the check.",
+						"scripts/stand-in.test-support.ts": "Fake the check.",
 					},
 				},
 			});
 		});
 
-		it("copies the skill without the test", () => {
+		it("copies the skill without its tests", () => {
 			syncNamShub(repository, source);
 
 			assert.deepEqual(

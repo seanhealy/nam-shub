@@ -16,7 +16,7 @@ const namShubRepository = "https://github.com/seanhealy/nam-shub";
 const blockPattern =
 	/<!-- BEGIN:nam-shub@(\w+) -->[\s\S]*?<!-- END:nam-shub -->/;
 // Tests run here, not in the repos the skills are copied into.
-const testSuffix = ".test.ts";
+const testSuffixes = [".test.ts", ".test-support.ts"];
 
 export function syncNamShub(repository: string, source = namShubRepository) {
 	const checkout = mkdtempSync(join(tmpdir(), "nam-shub-"));
@@ -59,7 +59,8 @@ function copySkills(from: string, to: string) {
 		rmSync(join(to, name), { recursive: true, force: true });
 		cpSync(join(from, name), join(to, name), {
 			recursive: true,
-			filter: (source) => !source.endsWith(testSuffix),
+			filter: (source) =>
+				!testSuffixes.some((suffix) => source.endsWith(suffix)),
 		});
 	});
 	return names;
