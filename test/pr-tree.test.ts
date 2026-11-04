@@ -5,7 +5,7 @@ import type { PullRequest } from "../skills/ns-manager-mode/scripts/pr-tree.ts";
 import {
 	buildPullRequest,
 	runWithStandInGitHub,
-} from "../skills/ns-manager-mode/scripts/stand-in-gh.test-support.ts";
+} from "../skills/ns-manager-mode/scripts/stand-in-gh.test.support.ts";
 
 const SCRIPT = join(
 	import.meta.dirname,

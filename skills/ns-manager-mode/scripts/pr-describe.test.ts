@@ -5,7 +5,7 @@ import type { PullRequest } from "./pr-tree.ts";
 import {
 	buildPullRequest,
 	runWithStandInGitHub,
-} from "./stand-in-gh.test-support.ts";
+} from "./stand-in-gh.test.support.ts";
 
 const SCRIPT = join(import.meta.dirname, "pr-describe.ts");
 const PR_TREE = join(import.meta.dirname, "pr-tree.ts");
