@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import { beforeEach, describe, it } from "node:test";
-import type { PullRequest } from "./stand-in-gh.ts";
-import { buildPullRequest, runWithStandInGitHub } from "./stand-in-gh.ts";
+import type { PullRequest } from "./pr-tree.ts";
+import {
+	buildPullRequest,
+	runWithStandInGitHub,
+} from "./stand-in-gh.test-support.ts";
 
-const SCRIPTS = join(import.meta.dirname, "../skills/manager-mode/scripts");
-const SCRIPT = join(SCRIPTS, "pr-describe.ts");
-const PR_TREE = join(SCRIPTS, "pr-tree.ts");
+const SCRIPT = join(import.meta.dirname, "pr-describe.ts");
+const PR_TREE = join(import.meta.dirname, "pr-tree.ts");
+const SKIPPED_MARKERS =
+	"#1 skipped: the Stack markers don't make one section\n";
 
 describe("pr-describe", () => {
 	let pullRequests: PullRequest[];
@@ -21,13 +25,29 @@ describe("pr-describe", () => {
 			];
 		});
 
-		it("replaces the section with what pr-tree --description prints", () => {
+		it("replaces the section with the PR's current stack", () => {
 			const { writes } = runScript(pullRequests, ["1"]);
 
 			assert.deepEqual(writes, [
 				{
 					pullRequestId: "PR_1",
-					body: `Intro.\n\n${stackSection(pullRequests, 1)}\n\nOutro.\n`,
+					body: `Intro.
+
+<!-- pr-tree:start -->
+## Stack
+
+<pre>
+main
+└─ <b>● <a href="https://github.com/owner/repo/pull/1">#1</a> feat/one                                 🚧  ◀ this PR</b>
+</pre>
+
+● mergeable · ✕ conflicting · ⭘ unknown
+
+🚧 working · 🔍 self review · 🤔 needs decision · ⛔ blocked · 👀 review requested · ✅ approved · 🥞 stacked · 👣️ feature · 📝 draft
+<!-- pr-tree:end -->
+
+Outro.
+`,
 				},
 			]);
 		});
@@ -55,13 +75,13 @@ describe("pr-describe", () => {
 		assert.equal(writes[0].body, stackSection(pullRequests, 1));
 	});
 
-	it("leaves every byte outside the markers as it was", () => {
-		const before = "Line one  \r\n\r\n- item\t\r\n\r\n";
+	it("leaves every byte outside the section as it was", () => {
+		const before = "Line one  \r\n\r\n- item\t\r\n";
 		const after = "\r\n\r\n<!-- other:start -->kept<!-- other:end -->  ";
 		pullRequests = [
 			buildPullRequest({
 				number: 1,
-				body: `${before}<!-- pr-tree:start -->stale<!-- pr-tree:end -->${after}`,
+				body: `${before}<!-- pr-tree:start -->\r\nstale\r\n<!-- pr-tree:end -->${after}`,
 			}),
 		];
 
@@ -73,18 +93,107 @@ describe("pr-describe", () => {
 		);
 	});
 
-	it("keeps the text after a start marker with no end marker of its own", () => {
-		const before = "Intro <!-- pr-tree:start --> kept.\n\n";
-		pullRequests = [
-			buildPullRequest({
-				number: 1,
-				body: `${before}<!-- pr-tree:start -->stale<!-- pr-tree:end -->`,
-			}),
-		];
+	it("appends the section after markers quoted in a sentence", () => {
+		const sentence =
+			"The section sits between `<!-- pr-tree:start -->` and `<!-- pr-tree:end -->`.";
+		pullRequests = [buildPullRequest({ number: 1, body: sentence })];
 
 		const { writes } = runScript(pullRequests, ["1"]);
 
-		assert.equal(writes[0].body, `${before}${stackSection(pullRequests, 1)}`);
+		assert.equal(
+			writes[0].body,
+			`${sentence}\n\n${stackSection(pullRequests, 1)}`,
+		);
+	});
+
+	describe("with two Stack sections", () => {
+		beforeEach(() => {
+			pullRequests = [
+				buildPullRequest({
+					number: 1,
+					body: "<!-- pr-tree:start -->\none\n<!-- pr-tree:end -->\n\n<!-- pr-tree:start -->\ntwo\n<!-- pr-tree:end -->",
+				}),
+			];
+		});
+
+		it("skips the PR with a note and writes nothing", () => {
+			const { stdout, writes } = runScript(pullRequests, ["1"]);
+
+			assert.deepEqual(
+				{ stdout, writes },
+				{ stdout: SKIPPED_MARKERS, writes: [] },
+			);
+		});
+	});
+
+	describe("with an example section in a code block above the real one", () => {
+		beforeEach(() => {
+			pullRequests = [
+				buildPullRequest({
+					number: 1,
+					body: "For example:\n\n```\n<!-- pr-tree:start -->\nexample\n<!-- pr-tree:end -->\n```\n\n<!-- pr-tree:start -->\nstale\n<!-- pr-tree:end -->",
+				}),
+			];
+		});
+
+		it("skips the PR with a note and writes nothing", () => {
+			const { stdout, writes } = runScript(pullRequests, ["1"]);
+
+			assert.deepEqual(
+				{ stdout, writes },
+				{ stdout: SKIPPED_MARKERS, writes: [] },
+			);
+		});
+	});
+
+	describe("with an end marker and no start marker", () => {
+		beforeEach(() => {
+			pullRequests = [
+				buildPullRequest({ number: 1, body: "Intro.\n<!-- pr-tree:end -->" }),
+			];
+		});
+
+		it("skips the PR with a note and writes nothing", () => {
+			const { stdout, writes } = runScript(pullRequests, ["1"]);
+
+			assert.deepEqual(
+				{ stdout, writes },
+				{ stdout: SKIPPED_MARKERS, writes: [] },
+			);
+		});
+	});
+
+	describe("with a start marker and no end marker of its own", () => {
+		beforeEach(() => {
+			pullRequests = [
+				buildPullRequest({
+					number: 1,
+					body: "Intro.\n<!-- pr-tree:start -->\nkept\n\n<!-- pr-tree:start -->\nstale\n<!-- pr-tree:end -->",
+				}),
+			];
+		});
+
+		it("skips the PR with a note and writes nothing", () => {
+			const { stdout, writes } = runScript(pullRequests, ["1"]);
+
+			assert.deepEqual(
+				{ stdout, writes },
+				{ stdout: SKIPPED_MARKERS, writes: [] },
+			);
+		});
+	});
+
+	it("keeps an edit made to the body after the PRs were listed", () => {
+		pullRequests = [buildPullRequest({ number: 1, body: "Intro." })];
+
+		const { writes } = runScript(pullRequests, ["1"], {
+			editedBodies: { 1: "Intro.\n\nA note added since." },
+		});
+
+		assert.equal(
+			writes[0].body,
+			`Intro.\n\nA note added since.\n\n${stackSection(pullRequests, 1)}`,
+		);
 	});
 
 	describe("when the section is already current", () => {
@@ -140,19 +249,23 @@ describe("pr-describe", () => {
 			);
 		});
 
-		it("fetches the open PRs once and reads nothing else", () => {
-			const { calls } = runScript(pullRequests, []);
-
-			assert.deepEqual(
-				calls.map((call) => call.command),
-				["pr list", "api graphql", "api graphql", "api graphql"],
-			);
-		});
-
 		it("prints one line per PR in number order", () => {
 			const { stdout } = runScript(pullRequests, ["3", "1", "2"]);
 
 			assert.equal(stdout, "#1 updated\n#2 updated\n#3 updated\n");
+		});
+
+		it("stops at a write gh refuses, with gh's error", () => {
+			const result = runScript(pullRequests, [], { refusedWrite: "PR_2" });
+
+			assert.deepEqual(
+				[result.status, result.stdout, result.stderr],
+				[
+					1,
+					"#1 updated\n",
+					"write refused\ngh command failed: write refused\n",
+				],
+			);
 		});
 	});
 
@@ -161,10 +274,13 @@ describe("pr-describe", () => {
 			pullRequests = [buildPullRequest({ number: 1 })];
 		});
 
-		it("doesn't write", () => {
-			const { writes } = runScript(pullRequests, ["--dry-run", "1"]);
+		it("lists the open PRs and reads nothing else", () => {
+			const { calls } = runScript(pullRequests, ["--dry-run", "1"]);
 
-			assert.deepEqual(writes, []);
+			assert.deepEqual(
+				calls.map((call) => call.command),
+				["pr list"],
+			);
 		});
 
 		it("says what it would do", () => {
@@ -245,6 +361,45 @@ describe("pr-describe", () => {
 				[1, "refusing mutation that sets more than the body\n", []],
 			);
 		});
+
+		it("refuses a second updatePullRequest with a comma before its colon", () => {
+			const result = runMutation(`
+				mutation ($pullRequestId: ID!, $body: String!) {
+					updatePullRequest(input: { pullRequestId: $pullRequestId, body: $body }) {
+						clientMutationId
+					}
+					close: updatePullRequest(
+						input,: { pullRequestId: $pullRequestId, state: CLOSED }
+					) {
+						clientMutationId
+					}
+				}`);
+
+			assert.deepEqual(
+				[result.status, result.stderr, result.calls],
+				[1, "refusing mutation that sets more than the body\n", []],
+			);
+		});
+
+		it("refuses a mutation with a # comment in it", () => {
+			const result = runMutation(`
+				mutation ($pullRequestId: ID!, $body: String!) {
+					updatePullRequest(input: { pullRequestId: $pullRequestId, body: $body }) {
+						clientMutationId
+					}
+					close: updatePullRequest(
+						input # a comment
+						: { pullRequestId: $pullRequestId, state: CLOSED }
+					) {
+						clientMutationId
+					}
+				}`);
+
+			assert.deepEqual(
+				[result.status, result.stderr, result.calls],
+				[1, "refusing mutation with a # in it\n", []],
+			);
+		});
 	});
 });
 
@@ -259,20 +414,24 @@ function stackSection(pullRequests: PullRequest[], number: number) {
 	]).stdout.replace(/\n$/, "");
 }
 
-function runScript(pullRequests: PullRequest[], args: string[]) {
-	const result = runWithStandInGitHub(pullRequests, [
-		SCRIPT,
-		"--repo",
-		"owner/repo",
-		...args,
-	]);
+function runScript(
+	pullRequests: PullRequest[],
+	args: string[],
+	standIn?: Parameters<typeof runWithStandInGitHub>[2],
+) {
+	const result = runWithStandInGitHub(
+		pullRequests,
+		[SCRIPT, "--repo", "owner/repo", ...args],
+		standIn,
+	);
 	const writes = result.calls
 		.filter((call) => call.query?.trim().startsWith("mutation"))
 		.map(({ pullRequestId, body }) => ({ pullRequestId, body }));
 	return { ...result, writes };
 }
 
-// Hands the query straight to the script's mutation runner.
+// The script's own query is hardcoded and safe, so the guard is reached by
+// handing runMutation, exported for this alone, a query written here.
 function runMutation(query: string) {
 	return runWithStandInGitHub(
 		[],

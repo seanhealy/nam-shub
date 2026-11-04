@@ -64,13 +64,17 @@ pr-describe.ts 137 138        # just these
 pr-describe.ts --dry-run      # print what it would do, write nothing
 ```
 
-It replaces only the text between `<!-- pr-tree:start -->` and
-`<!-- pr-tree:end -->`, or appends the section when the markers aren't there,
-so the rest of the body stays byte for byte. It prints one line per PR:
-updated, unchanged (the body already matches, so nothing is written),
-skipped, for a PR that isn't open with an emoji label, or failed, with gh's
-error. It reads every open PR once and sends up to 8 writes at a time, under
-GitHub's secondary rate limit; the lines still come out in PR number order.
+It replaces only the lines from `<!-- pr-tree:start -->` to
+`<!-- pr-tree:end -->`, or appends the section when no line holds a marker, so
+every byte outside the section stays as it was. A marker counts only on a line
+of its own, so one quoted in a sentence is left alone. It prints one line per
+PR, in number order: updated, unchanged (the body already matches, so nothing
+is written), or skipped, for a PR that isn't open with an emoji label or whose
+body has more than one section or a marker without its pair. It reads the open
+PRs once for the tree, then reads each body again just before writing it, so
+an edit made in between isn't lost; `--dry-run` skips that second read. It
+writes one PR at a time and stops at the first write gh refuses, with gh's
+error.
 
 ## pr-status
 

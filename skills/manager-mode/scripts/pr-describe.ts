@@ -2,9 +2,10 @@
 // pr-describe.ts: Write each PR's Stack section, the one `pr-tree
 // --description` prints, into its description.
 //
-// It replaces only the text from `<!-- pr-tree:start -->` to
-// `<!-- pr-tree:end -->`, or appends the section when the markers aren't there,
-// so every other byte of the body stays as it was.
+// It replaces only the lines from `<!-- pr-tree:start -->` to
+// `<!-- pr-tree:end -->`, or appends the section when no line holds a marker,
+// so every byte outside that section stays as it was. A marker counts only on
+// a line of its own, and a body with any other set of markers is skipped.
 //
 // Constrained by construction: the one write is a hardcoded `updatePullRequest`
 // that sets the body and nothing else, checked against a local allowlist, with
@@ -13,12 +14,14 @@
 
 import { fileURLToPath } from "node:url";
 import {
+	execGitHub,
 	fail,
 	parseCommandLine,
 	parsePositiveInteger,
 	repoOption,
 	resolveRepo,
-	runAllowedMutationAsync,
+	runAllowedMutation,
+	splitRepo,
 } from "./gh-lib.ts";
 import type { MutationVariables } from "./gh-lib.ts";
 import type { PullRequest } from "./pr-tree.ts";
@@ -30,19 +33,22 @@ import {
 } from "./pr-tree.ts";
 
 const ALLOWED_MUTATIONS = new Set(["updatePullRequest"]);
-const ALLOWED_INPUT = "{ pullRequestId: $pullRequestId, body: $body }";
-// Writes in flight at once, under GitHub's secondary rate limit.
-const CONCURRENT_WRITES = 8;
+// GraphQL reads commas as whitespace, so the comparison drops them too.
+const ALLOWED_INPUT = "{ pullRequestId: $pullRequestId body: $body }";
+const START_LINE = new RegExp(`^${STACK_START}$`, "gm");
+const END_LINE = new RegExp(`^${STACK_END}$`, "gm");
 
 const USAGE = `Write each PR's Stack section into its description (gated behind approval).
 
 Usage: pr-describe [--repo owner/name] [--dry-run] [<pr> ...]
 
-The section is what pr-tree --description prints. It replaces the text between
-the pr-tree:start and pr-tree:end markers, or appends the section when they
-aren't there, leaving the rest of the body as it was. With no PR numbers it
-does every open PR. Prints one line per PR, in number order: updated,
-unchanged, skipped or failed.
+The section is what pr-tree --description prints. It replaces the lines from
+pr-tree:start to pr-tree:end, or appends the section when no line holds a
+marker, leaving every byte outside the section as it was. A marker counts only
+on a line of its own; a body with more than one section, or a marker without
+its pair, is skipped. With no PR numbers it does every open PR. Prints one line
+per PR, in number order: updated, unchanged or skipped. Stops at the first
+write gh refuses, with gh's error.
 
 --dry-run prints what it would do and writes nothing.`;
 
@@ -54,79 +60,98 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	// Any number of PRs, so they don't fit readPositionals' fixed names.
 	const numbers = positionals.map((pr) => parsePositiveInteger(pr, "pr"));
 	const dryRun = values["dry-run"] ?? false;
-	const pullRequests = readOpenPullRequests(resolveRepo(values.repo));
+	const repo = resolveRepo(values.repo);
+	const pullRequests = readOpenPullRequests(repo);
 	const targets = [
 		...new Set(numbers.length ? numbers : pullRequests.map((pr) => pr.number)),
 	].sort((left, right) => left - right);
-	const outcomes = await mapConcurrently(targets, CONCURRENT_WRITES, (number) =>
-		writeStackSection(pullRequests, number, dryRun),
-	);
-	targets.forEach((number, index) => {
-		console.log(`#${number} ${outcomes[index]}`);
+	targets.forEach((number) => {
+		console.log(
+			`#${number} ${writeStackSection(repo, pullRequests, number, dryRun)}`,
+		);
 	});
-	if (outcomes.some((outcome) => outcome.startsWith("failed"))) {
-		process.exitCode = 1;
-	}
 }
 
-async function writeStackSection(
+function writeStackSection(
+	repo: string,
 	pullRequests: PullRequest[],
 	number: number,
 	dryRun: boolean,
 ) {
 	const section = stackSection(pullRequests, number);
-	const pullRequest = pullRequests.find((pr) => pr.number === number);
-	if (section === undefined || pullRequest === undefined) {
+	const listed = pullRequests.find((pr) => pr.number === number);
+	if (section === undefined || listed === undefined) {
 		return "skipped: not an open PR with an emoji label";
 	}
-	const next = withSection(pullRequest.body, section);
-	if (next === pullRequest.body) {
+	// A write starts from a fresh read: the listed body may predate an edit,
+	// which writing over it would lose.
+	const { id, body } = dryRun ? listed : readBody(repo, number);
+	const next = withSection(body, section);
+	if (next === undefined) {
+		return "skipped: the Stack markers don't make one section";
+	}
+	if (next === body) {
 		return "unchanged";
 	}
 	if (dryRun) {
 		return "would update";
 	}
-	try {
-		await updateBody(pullRequest.id, next);
-	} catch (error) {
-		return `failed: ${(error as Error).message}`;
-	}
+	updateBody(id, next);
 	return "updated";
 }
 
 function withSection(body: string, section: string) {
-	const end = body.indexOf(STACK_END);
-	const start = body.lastIndexOf(STACK_START, end);
-	if (end === -1 || start === -1) {
+	const starts = [...body.matchAll(START_LINE)];
+	const ends = [...body.matchAll(END_LINE)];
+	if (!starts.length && !ends.length) {
 		return body === "" ? section : `${body}\n\n${section}`;
 	}
-	return body.slice(0, start) + section + body.slice(end + STACK_END.length);
-}
-
-// Each item's task, at most `limit` running at once, results in item order.
-async function mapConcurrently<Item, Result>(
-	items: Item[],
-	limit: number,
-	task: (item: Item) => Promise<Result>,
-) {
-	const results: Result[] = [];
-	let next = 0;
-	async function work() {
-		while (next < items.length) {
-			const index = next++;
-			results[index] = await task(items[index]);
-		}
+	if (
+		starts.length !== 1 ||
+		ends.length !== 1 ||
+		ends[0].index < starts[0].index
+	) {
+		return undefined;
 	}
-	await Promise.all(
-		Array.from({ length: Math.min(limit, items.length) }, work),
+	return (
+		body.slice(0, starts[0].index) +
+		section +
+		body.slice(ends[0].index + STACK_END.length)
 	);
-	return results;
 }
 
 // ── GitHub calls ─────────────────────────────────────────────────────────────
 
+function readBody(repo: string, number: number) {
+	const [owner, name] = splitRepo(repo);
+	const query = `
+		query ($owner: String!, $name: String!, $number: Int!) {
+			repository(owner: $owner, name: $name) {
+				pullRequest(number: $number) { id body }
+			}
+		}`;
+	const response = execGitHub(
+		[
+			"api",
+			"graphql",
+			"-f",
+			`query=${query}`,
+			"-f",
+			`owner=${owner}`,
+			"-f",
+			`name=${name}`,
+			"-F",
+			`number=${number}`,
+		],
+		{ json: true },
+	) as {
+		data: { repository: { pullRequest: { id: string; body: string } } };
+	};
+	return response.data.repository.pullRequest;
+}
+
 function updateBody(pullRequestId: string, body: string) {
-	return runMutation(
+	runMutation(
 		`
 		mutation ($pullRequestId: ID!, $body: String!) {
 			updatePullRequest(input: { pullRequestId: $pullRequestId, body: $body }) {
@@ -139,13 +164,17 @@ function updateBody(pullRequestId: string, body: string) {
 
 // The allowlist checks the mutation's name; this also checks that every input
 // it sends is the body and nothing else, so an edit can't widen it to the
-// title, base or state.
+// title, base or state. GraphQL skips a `#` comment like whitespace, which
+// would hide an input from the pattern, so the query may hold no `#` at all.
 export function runMutation(query: string, variables: MutationVariables) {
-	const inputs = [...query.matchAll(/\binput\s*:\s*([^)]*)/g)].map((match) =>
-		match[1].replace(/\s+/g, " ").trim(),
+	if (query.includes("#")) {
+		fail("refusing mutation with a # in it");
+	}
+	const inputs = [...query.matchAll(/\binput[\s,]*:[\s,]*([^)]*)/g)].map(
+		(match) => match[1].replace(/[\s,]+/g, " ").trim(),
 	);
 	if (!inputs.length || inputs.some((input) => input !== ALLOWED_INPUT)) {
 		fail("refusing mutation that sets more than the body");
 	}
-	return runAllowedMutationAsync(query, variables, ALLOWED_MUTATIONS);
+	return runAllowedMutation(query, variables, ALLOWED_MUTATIONS);
 }

@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import { beforeEach, describe, it } from "node:test";
-import type { PullRequest } from "./stand-in-gh.ts";
-import { buildPullRequest, runWithStandInGitHub } from "./stand-in-gh.ts";
+import type { PullRequest } from "../skills/manager-mode/scripts/pr-tree.ts";
+import {
+	buildPullRequest,
+	runWithStandInGitHub,
+} from "../skills/manager-mode/scripts/stand-in-gh.test-support.ts";
 
 const SCRIPT = join(
 	import.meta.dirname,

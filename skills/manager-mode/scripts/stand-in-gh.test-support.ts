@@ -4,23 +4,12 @@ import {
 	existsSync,
 	mkdtempSync,
 	readFileSync,
+	rmSync,
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-
-export type PullRequest = {
-	id: string;
-	number: number;
-	url: string;
-	headRefName: string;
-	baseRefName: string;
-	labels: { name: string }[];
-	isDraft: boolean;
-	mergeable: string;
-	author: { login: string };
-	body: string;
-};
+import type { PullRequest } from "./pr-tree.ts";
 
 export function buildPullRequest(
 	overrides: Partial<Omit<PullRequest, "labels">> & { labels?: string[] },
@@ -30,9 +19,10 @@ export function buildPullRequest(
 	return {
 		id: `PR_${number}`,
 		number,
+		title: `PR ${number}`,
 		url: `https://github.com/owner/repo/pull/${number}`,
-		headRefName: "feat/one",
 		baseRefName: "main",
+		headRefName: "feat/one",
 		isDraft: false,
 		mergeable: "MERGEABLE",
 		author: { login: "someone" },
@@ -42,32 +32,45 @@ export function buildPullRequest(
 	};
 }
 
-// Runs node with a stand-in `gh` first on the PATH. It answers with the PRs
-// given, and logs each call's command and variables for `calls`.
+// Runs node with a stand-in `gh` first on the PATH. It lists the PRs given,
+// answers a read of one PR's body with its edited body if it has one, refuses
+// the write to the refused PR id, and logs each call's command and variables
+// for `calls`.
 export function runWithStandInGitHub(
 	pullRequests: PullRequest[],
 	args: string[],
+	{
+		editedBodies = {},
+		refusedWrite,
+	}: { editedBodies?: Record<number, string>; refusedWrite?: string } = {},
 ) {
 	const bin = mkdtempSync(join(tmpdir(), "nam-shub-test-"));
-	writeFileSync(join(bin, "pull-requests.json"), JSON.stringify(pullRequests));
-	writeFileSync(join(bin, "gh"), STAND_IN_GH);
-	chmodSync(join(bin, "gh"), 0o755);
-	const result = spawnSync("node", args, {
-		encoding: "utf8",
-		env: {
-			...process.env,
-			PATH: `${bin}:${process.env.PATH}`,
-			NO_COLOR: "1",
-		},
-	});
-	return { ...result, calls: readCalls(bin) };
+	try {
+		writeFileSync(
+			join(bin, "stand-in.json"),
+			JSON.stringify({ pullRequests, editedBodies, refusedWrite }),
+		);
+		writeFileSync(join(bin, "gh"), STAND_IN_GH);
+		chmodSync(join(bin, "gh"), 0o755);
+		const result = spawnSync("node", args, {
+			encoding: "utf8",
+			env: {
+				...process.env,
+				PATH: `${bin}:${process.env.PATH}`,
+				NO_COLOR: "1",
+			},
+		});
+		return { ...result, calls: readCalls(bin) };
+	} finally {
+		rmSync(bin, { recursive: true, force: true });
+	}
 }
 
 const STAND_IN_GH = [
 	"#!/usr/bin/env node",
 	'const { appendFileSync, readFileSync } = require("node:fs");',
 	"const args = process.argv.slice(2);",
-	'const pullRequests = JSON.parse(readFileSync(`${__dirname}/pull-requests.json`, "utf8"));',
+	'const { pullRequests, editedBodies, refusedWrite } = JSON.parse(readFileSync(`${__dirname}/stand-in.json`, "utf8"));',
 	"const variables = Object.fromEntries(",
 	'\targs.filter((arg, index) => ["-f", "-F"].includes(args[index - 1]))',
 	'\t\t.map((arg) => [arg.slice(0, arg.indexOf("=")), arg.slice(arg.indexOf("=") + 1)]),',
@@ -79,6 +82,12 @@ const STAND_IN_GH = [
 	'\tanswer({ defaultBranchRef: { name: "main" } });',
 	'} else if (command === "pr list") {',
 	"\tanswer(pullRequests);",
+	'} else if (variables.query.trim().startsWith("query")) {',
+	"\tconst { id, number, body } = pullRequests.find((pr) => pr.number === Number(variables.number));",
+	"\tanswer({ data: { repository: { pullRequest: { id, body: editedBodies[number] ?? body } } } });",
+	"} else if (variables.pullRequestId === refusedWrite) {",
+	'\tprocess.stderr.write("write refused\\n");',
+	"\tprocess.exit(1);",
 	"} else {",
 	"\tanswer({ data: { updatePullRequest: { clientMutationId: null } } });",
 	"}",
