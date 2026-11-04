@@ -5,6 +5,7 @@ import {
 	lstatSync,
 	mkdirSync,
 	mkdtempSync,
+	readdirSync,
 	readFileSync,
 	symlinkSync,
 	writeFileSync,
@@ -12,7 +13,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, it } from "node:test";
-import { nsSync } from "../skills/ns-sync/ns-sync.ts";
+import { nsSync } from "./ns-sync.ts";
 
 describe("nsSync()", () => {
 	let repository: string;
@@ -253,6 +254,44 @@ describe("nsSync()", () => {
 					);
 				});
 			});
+		});
+	});
+
+	describe("with tests in a shared skill", () => {
+		beforeEach(() => {
+			source = makeSource({
+				core: "Write less code.",
+				skills: {
+					"ns-pr-review": {
+						"SKILL.md": "New review steps.",
+						"scripts/check.ts": "Check the branch.",
+						"scripts/contest.ts": "Run the contest.",
+						"scripts/test.ts": "Run the checks.",
+						"scripts/latest.test-data/sample.ts": "Sample the latest run.",
+						"scripts/check.test.ts": "Test the check.",
+						"scripts/stand-in.test.support.ts": "Fake the check.",
+					},
+				},
+			});
+		});
+
+		it("copies the skill without its tests", () => {
+			nsSync(repository, source);
+
+			assert.deepEqual(
+				readdirSync(join(repository, ".claude/skills/ns-pr-review"), {
+					recursive: true,
+				}).sort(),
+				[
+					"SKILL.md",
+					"scripts",
+					"scripts/check.ts",
+					"scripts/contest.ts",
+					"scripts/latest.test-data",
+					"scripts/latest.test-data/sample.ts",
+					"scripts/test.ts",
+				],
+			);
 		});
 	});
 

@@ -7,10 +7,7 @@ import {
 	runWithStandInGitHub,
 } from "../skills/ns-manager-mode/scripts/stand-in-gh.test.support.ts";
 
-const SCRIPT = join(
-	import.meta.dirname,
-	"../skills/ns-manager-mode/scripts/pr-tree.ts",
-);
+const SCRIPT = join(import.meta.dirname, "pr-tree.ts");
 
 const LEGEND = [
 	"● mergeable · ✕ conflicting · ⭘ unknown",

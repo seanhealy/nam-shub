@@ -11,10 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
-const GH_LIB = join(
-	import.meta.dirname,
-	"../skills/ns-manager-mode/scripts/gh-lib.ts",
-);
+const GH_LIB = join(import.meta.dirname, "gh-lib.ts");
 
 describe("runAllowedMutation()", () => {
 	const allowedMutations = ["addComment", "addPullRequestReviewThreadReply"];
