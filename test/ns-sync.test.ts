@@ -12,9 +12,9 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, it } from "node:test";
-import { syncNamShub } from "../skills/sync-nam-shub/sync-nam-shub.ts";
+import { nsSync } from "../skills/ns-sync/ns-sync.ts";
 
-describe("syncNamShub()", () => {
+describe("nsSync()", () => {
 	let repository: string;
 	let source: string;
 
@@ -25,13 +25,13 @@ describe("syncNamShub()", () => {
 	beforeEach(() => {
 		source = makeSource({
 			core: "Write less code.",
-			skills: { "pr-review": { "SKILL.md": "New review steps." } },
+			skills: { "ns-pr-review": { "SKILL.md": "New review steps." } },
 		});
 	});
 
 	describe("without an instructions file", () => {
 		it("creates CLAUDE.md with the block", () => {
-			const { commit } = syncNamShub(repository, source);
+			const { commit } = nsSync(repository, source);
 
 			assert.equal(
 				read(repository, "CLAUDE.md"),
@@ -40,7 +40,7 @@ describe("syncNamShub()", () => {
 		});
 
 		it("reports no previous commit", () => {
-			const { previous } = syncNamShub(repository, source);
+			const { previous } = nsSync(repository, source);
 
 			assert.equal(previous, undefined);
 		});
@@ -52,7 +52,7 @@ describe("syncNamShub()", () => {
 		});
 
 		it("puts the block above everything already there", () => {
-			const { commit } = syncNamShub(repository, source);
+			const { commit } = nsSync(repository, source);
 
 			assert.equal(
 				read(repository, "AGENTS.md"),
@@ -61,7 +61,7 @@ describe("syncNamShub()", () => {
 		});
 
 		it("doesn't create CLAUDE.md", () => {
-			syncNamShub(repository, source);
+			nsSync(repository, source);
 
 			assert.equal(existsSync(join(repository, "CLAUDE.md")), false);
 		});
@@ -77,7 +77,7 @@ describe("syncNamShub()", () => {
 		});
 
 		it("replaces the block whole", () => {
-			const { commit } = syncNamShub(repository, source);
+			const { commit } = nsSync(repository, source);
 
 			assert.equal(
 				read(repository, "AGENTS.md"),
@@ -86,7 +86,7 @@ describe("syncNamShub()", () => {
 		});
 
 		it("reports the commit it replaced", () => {
-			const { previous } = syncNamShub(repository, source);
+			const { previous } = nsSync(repository, source);
 
 			assert.equal(previous, "1234567");
 		});
@@ -95,12 +95,12 @@ describe("syncNamShub()", () => {
 			beforeEach(() => {
 				source = makeSource({
 					core: "Prices look like $5 and $& stays.",
-					skills: { "pr-review": { "SKILL.md": "New review steps." } },
+					skills: { "ns-pr-review": { "SKILL.md": "New review steps." } },
 				});
 			});
 
 			it("keeps them exactly as written", () => {
-				syncNamShub(repository, source);
+				nsSync(repository, source);
 
 				assert.match(
 					read(repository, "AGENTS.md"),
@@ -120,7 +120,7 @@ describe("syncNamShub()", () => {
 		});
 
 		it("writes the block into AGENTS.md", () => {
-			syncNamShub(repository, source);
+			nsSync(repository, source);
 
 			assert.match(
 				read(repository, "AGENTS.md"),
@@ -129,7 +129,7 @@ describe("syncNamShub()", () => {
 		});
 
 		it("leaves the link in place", () => {
-			syncNamShub(repository, source);
+			nsSync(repository, source);
 
 			assert.equal(
 				lstatSync(join(repository, "CLAUDE.md")).isSymbolicLink(),
@@ -140,40 +140,119 @@ describe("syncNamShub()", () => {
 
 	describe("with skills already in the repo", () => {
 		beforeEach(() => {
-			write(repository, ".claude/skills/pr-review/SKILL.md", "Old review steps.");
-			write(repository, ".claude/skills/pr-review/removed.md", "Gone upstream.");
+			write(repository, ".claude/skills/ns-pr-review/SKILL.md", "Old review steps.");
+			write(repository, ".claude/skills/ns-pr-review/removed.md", "Gone upstream.");
 		});
 
 		beforeEach(() => {
 			write(repository, ".claude/skills/deploy/SKILL.md", "This repo's own skill.");
+			write(repository, ".claude/skills/nsdeploy/SKILL.md", "Not a shared one.");
 		});
 
 		it("replaces a shared skill whole", () => {
-			syncNamShub(repository, source);
+			nsSync(repository, source);
 
 			assert.equal(
-				read(repository, ".claude/skills/pr-review/SKILL.md"),
+				read(repository, ".claude/skills/ns-pr-review/SKILL.md"),
 				"New review steps.",
 			);
 			assert.equal(
-				existsSync(join(repository, ".claude/skills/pr-review/removed.md")),
+				existsSync(join(repository, ".claude/skills/ns-pr-review/removed.md")),
 				false,
 			);
 		});
 
 		it("leaves the repo's own skills alone", () => {
-			syncNamShub(repository, source);
+			nsSync(repository, source);
 
 			assert.equal(
 				read(repository, ".claude/skills/deploy/SKILL.md"),
 				"This repo's own skill.",
 			);
+			assert.equal(
+				read(repository, ".claude/skills/nsdeploy/SKILL.md"),
+				"Not a shared one.",
+			);
 		});
 
 		it("reports the shared skills it wrote", () => {
-			const { skills } = syncNamShub(repository, source);
+			const { skills } = nsSync(repository, source);
 
-			assert.deepEqual(skills, ["pr-review"]);
+			assert.deepEqual(skills, ["ns-pr-review"]);
+		});
+
+		describe("with a shared skill dropped upstream", () => {
+			beforeEach(() => {
+				write(repository, ".claude/skills/ns-dropped/SKILL.md", "Retired.");
+			});
+
+			it("removes it", () => {
+				nsSync(repository, source);
+
+				assert.equal(
+					existsSync(join(repository, ".claude/skills/ns-dropped")),
+					false,
+				);
+			});
+		});
+
+		describe("with a skill under a name from before the ns- prefix", () => {
+			beforeEach(() => {
+				write(repository, ".claude/skills/pr-review/SKILL.md", "Old name.");
+			});
+
+			describe("with a block from an earlier sync", () => {
+				beforeEach(() => {
+					write(
+						repository,
+						"AGENTS.md",
+						"<!-- BEGIN:nam-shub@1234567 -->\n\nOld rule.\n\n<!-- END:nam-shub -->\n",
+					);
+				});
+
+				it("removes the synced copy", () => {
+					nsSync(repository, source);
+
+					assert.equal(
+						existsSync(join(repository, ".claude/skills/pr-review")),
+						false,
+					);
+				});
+
+				describe("with an extension under the old name", () => {
+					beforeEach(() => {
+						write(
+							repository,
+							".claude/extensions/skills/pr-review/SKILL.md",
+							"This repo's additions.",
+						);
+					});
+
+					it("moves it to the new name", () => {
+						nsSync(repository, source);
+
+						assert.equal(
+							read(repository, ".claude/extensions/skills/ns-pr-review/SKILL.md"),
+							"This repo's additions.",
+						);
+						assert.equal(
+							existsSync(join(repository, ".claude/extensions/skills/pr-review")),
+							false,
+						);
+					});
+				});
+			});
+
+			describe("without a block from an earlier sync", () => {
+				it("keeps it as the repo's own skill", () => {
+					nsSync(repository, source);
+
+					assert.equal(
+						read(repository, ".claude/skills/pr-review/SKILL.md"),
+						"Old name.",
+					);
+				});
+			});
 		});
 	});
 
@@ -187,13 +266,13 @@ describe("syncNamShub()", () => {
 		});
 
 		it("throws the clone error", () => {
-			assert.throws(() => syncNamShub(repository, source), {
+			assert.throws(() => nsSync(repository, source), {
 				message: /git clone/,
 			});
 		});
 
 		it("leaves the repo untouched", () => {
-			assert.throws(() => syncNamShub(repository, source), {
+			assert.throws(() => nsSync(repository, source), {
 				message: /git clone/,
 			});
 

@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import { beforeEach, describe, it } from "node:test";
-import type { PullRequest } from "../skills/manager-mode/scripts/pr-tree.ts";
+import type { PullRequest } from "../skills/ns-manager-mode/scripts/pr-tree.ts";
 import {
 	buildPullRequest,
 	runWithStandInGitHub,
-} from "../skills/manager-mode/scripts/stand-in-gh.test-support.ts";
+} from "../skills/ns-manager-mode/scripts/stand-in-gh.test-support.ts";
 
 const SCRIPT = join(
 	import.meta.dirname,
-	"../skills/manager-mode/scripts/pr-tree.ts",
+	"../skills/ns-manager-mode/scripts/pr-tree.ts",
 );
 
 const LEGEND = [
