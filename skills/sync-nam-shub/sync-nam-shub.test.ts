@@ -5,6 +5,7 @@ import {
 	lstatSync,
 	mkdirSync,
 	mkdtempSync,
+	readdirSync,
 	readFileSync,
 	symlinkSync,
 	writeFileSync,
@@ -12,7 +13,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, it } from "node:test";
-import { syncNamShub } from "../skills/sync-nam-shub/sync-nam-shub.ts";
+import { syncNamShub } from "./sync-nam-shub.ts";
 
 describe("syncNamShub()", () => {
 	let repository: string;
@@ -174,6 +175,32 @@ describe("syncNamShub()", () => {
 			const { skills } = syncNamShub(repository, source);
 
 			assert.deepEqual(skills, ["pr-review"]);
+		});
+	});
+
+	describe("with a test in a shared skill", () => {
+		beforeEach(() => {
+			source = makeSource({
+				core: "Write less code.",
+				skills: {
+					"pr-review": {
+						"SKILL.md": "New review steps.",
+						"scripts/check.ts": "Check the branch.",
+						"scripts/check.test.ts": "Test the check.",
+					},
+				},
+			});
+		});
+
+		it("copies the skill without the test", () => {
+			syncNamShub(repository, source);
+
+			assert.deepEqual(
+				readdirSync(join(repository, ".claude/skills/pr-review"), {
+					recursive: true,
+				}).sort(),
+				["SKILL.md", "scripts", "scripts/check.ts"],
+			);
 		});
 	});
 

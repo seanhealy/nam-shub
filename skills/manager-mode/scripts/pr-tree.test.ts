@@ -5,10 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
-const SCRIPT = join(
-	import.meta.dirname,
-	"../skills/manager-mode/scripts/pr-tree.ts",
-);
+const SCRIPT = join(import.meta.dirname, "pr-tree.ts");
 
 const LEGEND = [
 	"● mergeable · ✕ conflicting · ⭘ unknown",

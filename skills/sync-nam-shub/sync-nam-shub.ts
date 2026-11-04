@@ -15,6 +15,8 @@ import { fileURLToPath } from "node:url";
 const namShubRepository = "https://github.com/seanhealy/nam-shub";
 const blockPattern =
 	/<!-- BEGIN:nam-shub@(\w+) -->[\s\S]*?<!-- END:nam-shub -->/;
+// Tests run here, not in the repos the skills are copied into.
+const testSuffix = ".test.ts";
 
 export function syncNamShub(repository: string, source = namShubRepository) {
 	const checkout = mkdtempSync(join(tmpdir(), "nam-shub-"));
@@ -55,7 +57,10 @@ function copySkills(from: string, to: string) {
 	const names = readdirSync(from);
 	names.forEach((name) => {
 		rmSync(join(to, name), { recursive: true, force: true });
-		cpSync(join(from, name), join(to, name), { recursive: true });
+		cpSync(join(from, name), join(to, name), {
+			recursive: true,
+			filter: (source) => !source.endsWith(testSuffix),
+		});
 	});
 	return names;
 }
