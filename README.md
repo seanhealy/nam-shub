@@ -10,8 +10,9 @@ are typed by hand often.
 
 To set up a repo, ask the agent working in it:
 
-> Set up nam-shub: read `skills/ns-sync/SKILL.md` in
-> `seanhealy/nam-shub` and follow it.
+```
+Set up nam-shub: read `skills/ns-sync/SKILL.md` in `seanhealy/nam-shub` and follow it.
+```
 
 After that, ask for the `ns-sync` skill in the repo to update it. A repo synced
 before the `ns-` prefix runs the skill's first-time command once.
