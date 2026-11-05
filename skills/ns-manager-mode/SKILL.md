@@ -31,9 +31,8 @@ codemod can't regenerate.
 - **A fresh reviewer before `review requested`.** A different agent reviews
   every PR and drafts description fixes for the manager to post. It starts right
   away; open questions go in its brief as things to report, not change.
-- **Model and effort fit the job.** A smaller model for mechanical edits and
-  lookups, the default for judgement and review. Keep effort low unless the
-  problem is hard, not just big: higher effort tends to over-engineer.
+- **Size each agent's model and effort to its job.** Higher effort can reason
+  its way into more than the job needs.
 - **QA means regressions.** Anything also on production is reported separately
   as pre-existing.
 - **One worktree per branch,** at `.claude/worktrees/<branch>` with slashes as
