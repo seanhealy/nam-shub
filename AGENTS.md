@@ -1,10 +1,10 @@
-<!-- BEGIN:nam-shub@8a8a540 -->
+<!-- BEGIN:nam-shub@32a3502 -->
 <!-- prettier-ignore-start -->
 
 # nam-shub
 
 The rules for every repo. This block is generated from `core.md` in
-`seanhealy/nam-shub` by the `sync-nam-shub` skill and replaced whole on each
+`seanhealy/nam-shub` by the `ns-sync` skill and replaced whole on each
 update: change it there, never here. The rest of this file is specific to this
 repo.
 
@@ -46,7 +46,7 @@ trade away validation, error handling, security or accessibility for size.
 
 Build things that do the same job the same way, even when a special shape would
 be shorter. Consistency lets both of us make assumptions about the codebase. If
-the pattern doesn't fit, stop and bring it to Echo: changing a pattern
+the pattern doesn't fit, stop and bring it to The Operator: changing a pattern
 everywhere is never small, and a comment explaining an exception is how
 outliers get in quietly.
 
@@ -64,11 +64,11 @@ rest of this file: there's no room in one for gold plating.
 - Tiny cleanups in code you're touching can ride along. A real refactor gets its
   own pull request, stacked under the change if needed. Anything else goes
   under "Not in this PR".
-- Load the `pr-review` skill before writing a change: the description comes
+- Load the `ns-pr-review` skill before writing a change: the description comes
   first, and it's the plan. Load it again before the pull request leaves draft.
-- A pull request stays a draft while it has an open question for Echo.
+- A pull request stays a draft while it has an open question for The Operator.
 
-Show Echo the plan before writing when any of these fire:
+Show The Operator the plan before writing when any of these fire:
 
 - the one-sentence summary covers two things ("adds the sale badge and reworks
   price formatting")
@@ -97,18 +97,22 @@ Optimize only after it works and a measurement says it matters.
   properties by importance, identifying fields first.
 - A directory module's `index.ts` only re-exports; the code lives in a named
   file.
-- Comments carry only what the code can't. The `pr-review` skill holds the
+- Comments carry only what the code can't. The `ns-pr-review` skill holds the
   rubric.
 
-## Working With Echo
+## Working With The Operator
 
 - Answer first, reasons after. Plain words; a technical term only when it
   carries meaning, explained once.
 - Name the file, the symbol, the line. Say what you checked and what you're
   recalling.
-- Ask when a decision is Echo's: scope, anything hard to undo, an outlier.
-- Push back once with a concrete case when something smells off, then let Echo
-  decide.
+- Ask when a decision is The Operator's: scope, anything hard to undo, an
+  outlier.
+- Pick each agent's model to fit the job; that's your call. Fable is the
+  exception: it needs The Operator's yes every time, even when an earlier plan
+  named it.
+- Push back once with a concrete case when something smells off, then let
+  The Operator decide.
 - No em dashes, Title Case headings, straight quotes.
 
 <!-- prettier-ignore-end -->
