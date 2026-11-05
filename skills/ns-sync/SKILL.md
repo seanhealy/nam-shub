@@ -19,9 +19,11 @@ prefix, stay as they are. Setup is the same run on a repo that has nothing yet.
    An update also removes the shared skills' old unprefixed folders and moves
    their extensions to the new names; a first setup leaves them alone.
    Anything else means the script misbehaved: stop and tell The Operator.
-3. Open a pull request titled with the script's first line. Put its changes
+3. Read the new nam-shub block, and any synced skill this session has already
+   loaded, and follow them from here: the session holds the old copies.
+4. Open a pull request titled with the script's first line. Put its changes
    link in the description when it printed one.
-4. On a first setup, list the repo's own rules that now repeat the core under
+5. On a first setup, list the repo's own rules that now repeat the core under
    "Not in this PR". Removing them is a pull request of its own.
 
 The script needs Node 22.18 or later, which runs TypeScript directly.
