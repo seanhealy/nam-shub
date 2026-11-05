@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, it } from "node:test";
+import type { PullRequest } from "./pr-tree.ts";
+import {
+	buildPullRequest,
+	runWithStandInGitHub,
+} from "./stand-in-gh.test.support.ts";
 
 const SCRIPT = join(import.meta.dirname, "pr-tree.ts");
 
@@ -175,35 +177,6 @@ describe("pr-tree", () => {
 	});
 });
 
-type PullRequest = {
-	number: number;
-	url: string;
-	headRefName: string;
-	baseRefName: string;
-	labels: { name: string }[];
-	isDraft: boolean;
-	mergeable: string;
-	author: { login: string };
-};
-
-function buildPullRequest(
-	overrides: Partial<Omit<PullRequest, "labels">> & { labels?: string[] },
-): PullRequest {
-	const { labels = ["🚧 working"], ...rest } = overrides;
-	const number = rest.number ?? 1;
-	return {
-		number,
-		url: `https://github.com/owner/repo/pull/${number}`,
-		headRefName: "feat/one",
-		baseRefName: "main",
-		isDraft: false,
-		mergeable: "MERGEABLE",
-		author: { login: "someone" },
-		...rest,
-		labels: labels.map((name) => ({ name })),
-	};
-}
-
 function runTree(pullRequests: PullRequest[]) {
 	return runScript(pullRequests, []).stdout;
 }
@@ -212,29 +185,13 @@ function runDescription(pullRequests: PullRequest[], number: number) {
 	return runScript(pullRequests, ["--description", String(number)]).stdout;
 }
 
-// Runs the script against a stand-in `gh` that answers with the PRs given.
 function runScript(pullRequests: PullRequest[], args: string[]) {
-	const bin = mkdtempSync(join(tmpdir(), "nam-shub-test-"));
-	writeFileSync(join(bin, "pull-requests.json"), JSON.stringify(pullRequests));
-	writeFileSync(
-		join(bin, "gh"),
-		[
-			"#!/usr/bin/env node",
-			'const { readFileSync } = require("node:fs");',
-			'process.stdout.write(process.argv[2] === "repo"',
-			'\t? JSON.stringify({ defaultBranchRef: { name: "main" } })',
-			'\t: readFileSync(`${__dirname}/pull-requests.json`, "utf8"));',
-		].join("\n"),
-	);
-	chmodSync(join(bin, "gh"), 0o755);
-	return spawnSync("node", [SCRIPT, "--repo", "owner/repo", ...args], {
-		encoding: "utf8",
-		env: {
-			...process.env,
-			PATH: `${bin}:${process.env.PATH}`,
-			NO_COLOR: "1",
-		},
-	});
+	return runWithStandInGitHub(pullRequests, [
+		SCRIPT,
+		"--repo",
+		"owner/repo",
+		...args,
+	]);
 }
 
 function lines(output: string) {

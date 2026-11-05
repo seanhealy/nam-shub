@@ -1,6 +1,6 @@
 # PR Scripts
 
-Four scripts in `scripts/`, run the way SKILL.md says. Each defaults to the
+Five scripts in `scripts/`, run the way SKILL.md says. Each defaults to the
 current checkout's repo, takes `--repo owner/name` for another, and prints its
 usage with `--help`. They need Node 22.18 or later, which runs TypeScript
 directly, and `gh` logged in with GraphQL, so they don't run in a cloud session
@@ -9,7 +9,7 @@ directly, and `gh` logged in with GraphQL, so they don't run in a cloud session
 Every `gh` call is hardcoded, with input only ever filling its variables, and
 each write is checked against the script's own allowlist of mutations.
 `pr-status` and `pr-tree` only read, so they are safe to allow without asking.
-Keep `pr-comment` behind a permission prompt.
+Keep `pr-comment` and `pr-describe` behind a permission prompt.
 
 ## pr-state
 
@@ -50,7 +50,31 @@ pr-tree.ts --description 137  # 137's stack, for its description
 through every PR stacked on it, as a `## Stack` section between
 `<!-- pr-tree:start -->` and `<!-- pr-tree:end -->`. The tree sits in a `<pre>`
 with each PR number linked, the PR's own line in bold, and the legend below.
-It only prints; writing it into a description is the manager's job.
+It only prints; `pr-describe` writes it into the description.
+
+## pr-describe
+
+Writes each PR's Stack section, exactly what `pr-tree --description` prints,
+into its description, and nothing else: its one write is `updatePullRequest`
+setting the body.
+
+```bash
+pr-describe.ts                # every open PR
+pr-describe.ts 137 138        # just these
+pr-describe.ts --dry-run      # print what it would do, write nothing
+```
+
+It replaces only the lines from `<!-- pr-tree:start -->` to
+`<!-- pr-tree:end -->`, or appends the section when no line holds a marker, so
+every byte outside the section stays as it was. A marker counts only on a line
+of its own, so one quoted in a sentence is left alone. It prints one line per
+PR, in number order: updated, unchanged (the body already matches, so nothing
+is written), or skipped, for a PR that isn't open with an emoji label or whose
+body has more than one section or a marker without its pair. It reads the open
+PRs once for the tree, then reads each body again just before writing it, so
+an edit made in between isn't lost; `--dry-run` skips that second read. It
+writes one PR at a time and stops at the first write gh refuses, with gh's
+error.
 
 ## pr-status
 

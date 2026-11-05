@@ -6,6 +6,7 @@
 // that emoji; the legend names every mark and label the scripts know. Branch
 // labels (feature, stacked) print after the state.
 
+import { fileURLToPath } from "node:url";
 import type { Mergeable } from "./gh-lib.ts";
 import {
 	execGitHub,
@@ -23,7 +24,8 @@ import { LABELS } from "./labels.ts";
 type Mark = { glyph: string; color: string; name: string };
 
 // An open PR as the `pr list` call below returns it.
-type PullRequest = {
+export type PullRequest = {
+	id: string;
 	number: number;
 	title: string;
 	url: string;
@@ -33,6 +35,7 @@ type PullRequest = {
 	labels: { name: string }[];
 	mergeable: Mergeable;
 	author: { login: string };
+	body: string;
 };
 
 type TreeRow = {
@@ -54,6 +57,8 @@ const LEGEND_LABELS = [
 	...Object.values(LABELS).map((label) => label.name),
 	DRAFT_LABEL,
 ];
+export const STACK_START = "<!-- pr-tree:start -->";
+export const STACK_END = "<!-- pr-tree:end -->";
 // The width of a line's connectors and PR name together, so the emojis after
 // it line up.
 const NAME_WIDTH = 46;
@@ -72,48 +77,97 @@ label.
 its description between pr-tree:start and pr-tree:end markers, with every PR
 linked. It only prints; it never edits the PR.`;
 
-const { values, positionals } = parseCommandLine(USAGE, {
-	repo: repoOption,
-	description: { type: "string" },
-});
-readPositionals(positionals, { required: [] }, USAGE);
-const described =
-	values.description === undefined
-		? undefined
-		: parsePositiveInteger(values.description, "description");
-const repo = resolveRepo(values.repo);
-
-const repository = execGitHub(
-	["repo", "view", repo, "--json", "defaultBranchRef"],
-	{ json: true },
-) as { defaultBranchRef: { name: string } };
-const defaultBranch = repository.defaultBranchRef.name;
-const all = execGitHub(
-	[
-		"pr",
-		"list",
-		"--repo",
-		repo,
-		"--state",
-		"open",
-		"--limit",
-		"200",
-		"--json",
-		"number,title,url,baseRefName,headRefName,isDraft,labels,mergeable,author",
-	],
-	{ json: true },
-) as PullRequest[];
-const ours = all.filter(isTracked);
-const untracked = all.filter((pr) => !isTracked(pr));
-const byHead = new Map(ours.map((pr) => [pr.headRefName, pr]));
-
-if (described === undefined) {
-	printTree();
-} else {
-	printDescription(described);
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+	const { values, positionals } = parseCommandLine(USAGE, {
+		repo: repoOption,
+		description: { type: "string" },
+	});
+	readPositionals(positionals, { required: [] }, USAGE);
+	const described =
+		values.description === undefined
+			? undefined
+			: parsePositiveInteger(values.description, "description");
+	const repo = resolveRepo(values.repo);
+	const pullRequests = readOpenPullRequests(repo);
+	if (described === undefined) {
+		printTree(readDefaultBranch(repo), pullRequests);
+	} else {
+		const section = stackSection(pullRequests, described);
+		if (section === undefined) {
+			fail(`#${described} is not an open PR with an emoji label in ${repo}`);
+		}
+		console.log(section);
+	}
 }
 
-function printTree() {
+export function readOpenPullRequests(repo: string) {
+	return execGitHub(
+		[
+			"pr",
+			"list",
+			"--repo",
+			repo,
+			"--state",
+			"open",
+			"--limit",
+			"200",
+			"--json",
+			"id,number,title,url,baseRefName,headRefName,isDraft,labels,mergeable,author,body",
+		],
+		{ json: true },
+	) as PullRequest[];
+}
+
+// The PR's stack as a "## Stack" section between the markers: the chain of PRs
+// it sits on, from the root branch down, and every PR stacked on it, forks
+// included. Undefined when the PR isn't open with an emoji label.
+export function stackSection(pullRequests: PullRequest[], number: number) {
+	const ours = pullRequests.filter(isTracked);
+	const pullRequest = ours.find((pr) => pr.number === number);
+	if (!pullRequest) {
+		return undefined;
+	}
+	const ancestors = ancestorsOf(ours, pullRequest);
+	const stack = new Set(
+		[...ancestors, pullRequest, ...descendantsOf(ours, pullRequest)].map(
+			(pr) => pr.number,
+		),
+	);
+	const root = (ancestors[0] ?? pullRequest).baseRefName;
+	const rows = treeRows(ours, root, "", (pr) => stack.has(pr.number));
+	const lines = rows.map((row) => {
+		const link = `<a href="${escapeHtml(row.pr.url)}">#${row.pr.number}</a>`;
+		const text =
+			`${row.mark.glyph} ${link} ${escapeHtml(row.pr.headRefName)}${row.padding} ${escapeHtml(row.emojis)}`.trimEnd();
+		return row.pr.number === number
+			? `${row.lead}<b>${text}  ◀ this PR</b>`
+			: `${row.lead}${text}`;
+	});
+	return [
+		STACK_START,
+		"## Stack",
+		"",
+		"<pre>",
+		escapeHtml(root),
+		...lines,
+		"</pre>",
+		"",
+		legend((mark) => mark.glyph).join("\n\n"),
+		STACK_END,
+	].join("\n");
+}
+
+function readDefaultBranch(repo: string) {
+	const repository = execGitHub(
+		["repo", "view", repo, "--json", "defaultBranchRef"],
+		{ json: true },
+	) as { defaultBranchRef: { name: string } };
+	return repository.defaultBranchRef.name;
+}
+
+function printTree(defaultBranch: string, pullRequests: PullRequest[]) {
+	const ours = pullRequests.filter(isTracked);
+	const untracked = pullRequests.filter((pr) => !isTracked(pr));
 	// A base that is neither the default branch nor an open PR's head gets a
 	// root of its own.
 	const roots = [
@@ -121,12 +175,16 @@ function printTree() {
 		...new Set(
 			ours
 				.map((pr) => pr.baseRefName)
-				.filter((base) => base !== defaultBranch && !byHead.has(base)),
+				.filter(
+					(base) =>
+						base !== defaultBranch &&
+						!ours.some((pr) => pr.headRefName === base),
+				),
 		),
 	];
 	roots.forEach((root) => {
 		console.log(root);
-		treeRows(root, "", () => true).forEach((row) => {
+		treeRows(ours, root, "", () => true).forEach((row) => {
 			console.log(
 				`${row.lead}${paint(row.mark)} ${row.name}${row.padding} ${row.emojis}`.trimEnd(),
 			);
@@ -141,48 +199,10 @@ function printTree() {
 	console.log(`\n${legend(paint).join("\n")}`);
 }
 
-// The PR's stack: the chain of PRs it sits on, from the root branch down, and
-// every PR stacked on it, forks included.
-function printDescription(number: number) {
-	const pullRequest = ours.find((pr) => pr.number === number);
-	if (!pullRequest) {
-		fail(`#${number} is not an open PR with an emoji label in ${repo}`);
-	}
-	const ancestors = ancestorsOf(pullRequest);
-	const stack = new Set(
-		[...ancestors, pullRequest, ...descendantsOf(pullRequest)].map(
-			(pr) => pr.number,
-		),
-	);
-	const root = (ancestors[0] ?? pullRequest).baseRefName;
-	const rows = treeRows(root, "", (pr) => stack.has(pr.number));
-	const lines = rows.map((row) => {
-		const link = `<a href="${escapeHtml(row.pr.url)}">#${row.pr.number}</a>`;
-		const text =
-			`${row.mark.glyph} ${link} ${escapeHtml(row.pr.headRefName)}${row.padding} ${escapeHtml(row.emojis)}`.trimEnd();
-		return row.pr.number === number
-			? `${row.lead}<b>${text}  ◀ this PR</b>`
-			: `${row.lead}${text}`;
-	});
-	console.log(
-		[
-			"<!-- pr-tree:start -->",
-			"## Stack",
-			"",
-			"<pre>",
-			escapeHtml(root),
-			...lines,
-			"</pre>",
-			"",
-			legend((mark) => mark.glyph).join("\n\n"),
-			"<!-- pr-tree:end -->",
-		].join("\n"),
-	);
-}
-
 // Every PR under the branch that `include` accepts, depth first, with the
 // connectors that draw it into the tree.
 function treeRows(
+	ours: PullRequest[],
 	branch: string,
 	prefix: string,
 	include: (pr: PullRequest) => boolean,
@@ -212,7 +232,12 @@ function treeRows(
 		};
 		return [
 			row,
-			...treeRows(pr.headRefName, prefix + (last ? "   " : "│  "), include),
+			...treeRows(
+				ours,
+				pr.headRefName,
+				prefix + (last ? "   " : "│  "),
+				include,
+			),
 		];
 	});
 }
@@ -227,15 +252,17 @@ function legend(drawMark: (mark: Mark) => string) {
 	];
 }
 
-function ancestorsOf(pr: PullRequest): PullRequest[] {
-	const parent = byHead.get(pr.baseRefName);
-	return parent ? [...ancestorsOf(parent), parent] : [];
+function ancestorsOf(ours: PullRequest[], pr: PullRequest): PullRequest[] {
+	const parent = ours.find(
+		(candidate) => candidate.headRefName === pr.baseRefName,
+	);
+	return parent ? [...ancestorsOf(ours, parent), parent] : [];
 }
 
-function descendantsOf(pr: PullRequest): PullRequest[] {
+function descendantsOf(ours: PullRequest[], pr: PullRequest): PullRequest[] {
 	return ours
 		.filter((child) => child.baseRefName === pr.headRefName)
-		.flatMap((child) => [child, ...descendantsOf(child)]);
+		.flatMap((child) => [child, ...descendantsOf(ours, child)]);
 }
 
 function paint(mark: Mark) {
